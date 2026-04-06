@@ -84,31 +84,31 @@ export default function Nearby() {
   }, [location, activeTab]);
 
   return (
-    <div className="p-6 flex flex-col gap-6 h-full bg-[#f8f9fb]">
+    <div className="p-4 flex flex-col gap-4 h-full bg-[#f8f9fb]">
       <header>
-        <h1 className="text-2xl font-bold text-slate-800">Nearby Services</h1>
-        <p className="text-slate-500 text-sm">Real-time results near your location</p>
+        <h1 className="text-xl font-bold text-slate-800">Nearby Services</h1>
+        <p className="text-slate-500 text-xs">Real-time results near your location</p>
       </header>
 
       {/* Tabs */}
-      <div className="flex p-1 bg-slate-100 rounded-2xl">
+      <div className="flex p-1 bg-slate-100 rounded-xl">
         <button 
           onClick={() => setActiveTab('mosque')}
           className={cn(
-            "flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+            "flex-1 py-2.5 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-2",
             activeTab === 'mosque' ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400"
           )}
         >
-          <Building2 size={16} /> Mosques
+          <Building2 size={14} /> Mosques
         </button>
         <button 
           onClick={() => setActiveTab('halal')}
           className={cn(
-            "flex-1 py-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2",
+            "flex-1 py-2.5 rounded-lg text-[10px] font-bold transition-all flex items-center justify-center gap-2",
             activeTab === 'halal' ? "bg-white text-emerald-600 shadow-sm" : "text-slate-400"
           )}
         >
-          <Store size={16} /> Halal Meat
+          <Store size={14} /> Halal Meat
         </button>
       </div>
 
@@ -133,39 +133,39 @@ export default function Nearby() {
               className="space-y-4"
             >
               {results.map((place, i) => (
-                <motion.div 
-                  key={i}
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: i * 0.05 }}
-                  className="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm hover:shadow-md transition-all group"
-                >
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-bold text-slate-800 group-hover:text-emerald-600 transition-colors">{place.name}</h3>
-                    {place.rating && (
-                      <div className="bg-amber-50 text-amber-600 px-2 py-1 rounded-lg text-[10px] font-bold flex items-center gap-1">
-                        <Star size={10} fill="currentColor" /> {place.rating}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-500 mb-3 flex items-start gap-1">
-                    <MapPin size={12} className="mt-0.5 shrink-0 text-slate-300" />
-                    {place.address}
-                  </p>
-                  <div className="flex items-center gap-4 mt-4 pt-4 border-t border-slate-50">
-                    <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                      <MapPin size={10} /> {place.distance || 'Nearby'}
+                  <motion.div 
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                    className="bg-white p-4 rounded-[24px] border border-slate-100 shadow-sm hover:shadow-md transition-all group"
+                  >
+                    <div className="flex justify-between items-start mb-1.5">
+                      <h3 className="font-bold text-sm text-slate-800 group-hover:text-emerald-600 transition-colors">{place.name}</h3>
+                      {place.rating && (
+                        <div className="bg-amber-50 text-amber-600 px-1.5 py-0.5 rounded-md text-[9px] font-bold flex items-center gap-1">
+                          <Star size={8} fill="currentColor" /> {place.rating}
+                        </div>
+                      )}
                     </div>
-                    {place.open_now !== undefined && (
-                      <div className={cn(
-                        "flex items-center gap-1 text-[10px] font-bold uppercase tracking-widest",
-                        place.open_now ? "text-emerald-600" : "text-rose-500"
-                      )}>
-                        <Clock size={10} /> {place.open_now ? 'Open Now' : 'Closed'}
+                    <p className="text-[10px] text-slate-500 mb-2 flex items-start gap-1">
+                      <MapPin size={10} className="mt-0.5 shrink-0 text-slate-300" />
+                      {place.address}
+                    </p>
+                    <div className="flex items-center gap-4 mt-3 pt-3 border-t border-slate-50">
+                      <div className="flex items-center gap-1 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                        <MapPin size={9} /> {place.distance || 'Nearby'}
                       </div>
-                    )}
-                  </div>
-                </motion.div>
+                      {place.open_now !== undefined && (
+                        <div className={cn(
+                          "flex items-center gap-1 text-[9px] font-bold uppercase tracking-widest",
+                          place.open_now ? "text-emerald-600" : "text-rose-500"
+                        )}>
+                          <Clock size={9} /> {place.open_now ? 'Open Now' : 'Closed'}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
               ))}
               {results.length === 0 && !loading && (
                 <div className="text-center py-20 bg-white rounded-[32px] border border-dashed border-slate-200">

@@ -236,37 +236,37 @@ export default function ParaMeanings() {
   return (
     <div className="flex flex-col h-full bg-[#121212] text-white overflow-hidden">
       {/* Header */}
-      <header className="p-6 bg-gradient-to-b from-[#1e1e1e] to-[#121212]">
-        <h1 className="text-3xl font-black tracking-tight mb-2">Para Meanings</h1>
-        <p className="text-slate-400 text-sm font-medium">Maulana Jalandhari Urdu Translation</p>
+      <header className="p-4 bg-gradient-to-b from-[#1e1e1e] to-[#121212]">
+        <h1 className="text-2xl font-black tracking-tight mb-1">Para Meanings</h1>
+        <p className="text-slate-400 text-xs font-medium">Maulana Jalandhari Urdu Translation</p>
       </header>
 
       {/* List of Paras and Surahs */}
-      <div className="flex-1 overflow-y-auto px-4 pb-32">
-        <section className="mb-8">
-          <h2 className="text-xl font-bold mb-4 px-2">30 Paras</h2>
-          <div className="grid grid-cols-1 gap-1">
+      <div className="flex-1 overflow-y-auto px-3 pb-32">
+        <section className="mb-6">
+          <h2 className="text-lg font-bold mb-3 px-2">30 Paras</h2>
+          <div className="grid grid-cols-1 gap-0.5">
             {PARAS.filter(p => p.type === 'para').map((para) => (
               <button
                 key={para.number}
                 onClick={() => openPlayer(para)}
                 className={cn(
-                  "flex items-center gap-4 p-3 rounded-lg transition-all group",
+                  "flex items-center gap-3 p-2 rounded-lg transition-all group",
                   selectedPara?.number === para.number && selectedPara.type === 'para' ? "bg-[#282828]" : "hover:bg-[#1a1a1a]"
                 )}
               >
-                <div className="w-12 h-12 bg-[#282828] rounded flex items-center justify-center text-slate-400 group-hover:text-white transition-colors">
-                  <Music size={20} />
+                <div className="w-10 h-10 bg-[#282828] rounded flex items-center justify-center text-slate-400 group-hover:text-white transition-colors">
+                  <Music size={18} />
                 </div>
                 <div className="flex-1 text-left">
                   <h3 className={cn(
-                    "font-bold transition-colors",
+                    "font-bold text-sm transition-colors",
                     selectedPara?.number === para.number && selectedPara.type === 'para' ? "text-emerald-500" : "text-white"
                   )}>{para.englishName}</h3>
-                  <p className="text-xs text-slate-400">{para.name}</p>
+                  <p className="text-[10px] text-slate-400">{para.name}</p>
                 </div>
                 <div className="text-slate-500 group-hover:text-white transition-colors">
-                  <Play size={16} fill="currentColor" className={cn(selectedPara?.number === para.number && selectedPara.type === 'para' ? "text-emerald-500" : "")} />
+                  <Play size={14} fill="currentColor" className={cn(selectedPara?.number === para.number && selectedPara.type === 'para' ? "text-emerald-500" : "")} />
                 </div>
               </button>
             ))}
@@ -274,29 +274,29 @@ export default function ParaMeanings() {
         </section>
 
         <section>
-          <h2 className="text-xl font-bold mb-4 px-2">Popular Surahs</h2>
-          <div className="grid grid-cols-1 gap-1">
+          <h2 className="text-lg font-bold mb-3 px-2">Popular Surahs</h2>
+          <div className="grid grid-cols-1 gap-0.5">
             {PARAS.filter(p => p.type === 'surah').map((para) => (
               <button
                 key={para.number}
                 onClick={() => openPlayer(para)}
                 className={cn(
-                  "flex items-center gap-4 p-3 rounded-lg transition-all group",
+                  "flex items-center gap-3 p-2 rounded-lg transition-all group",
                   selectedPara?.number === para.number && selectedPara.type === 'surah' ? "bg-[#282828]" : "hover:bg-[#1a1a1a]"
                 )}
               >
-                <div className="w-12 h-12 bg-emerald-900/30 rounded flex items-center justify-center text-emerald-500 group-hover:text-white transition-colors">
-                  <Music size={20} />
+                <div className="w-10 h-10 bg-emerald-900/30 rounded flex items-center justify-center text-emerald-500 group-hover:text-white transition-colors">
+                  <Music size={18} />
                 </div>
                 <div className="flex-1 text-left">
                   <h3 className={cn(
-                    "font-bold transition-colors",
+                    "font-bold text-sm transition-colors",
                     selectedPara?.number === para.number && selectedPara.type === 'surah' ? "text-emerald-500" : "text-white"
                   )}>{para.englishName}</h3>
-                  <p className="text-xs text-slate-400">{para.name}</p>
+                  <p className="text-[10px] text-slate-400">{para.name}</p>
                 </div>
                 <div className="text-slate-500 group-hover:text-white transition-colors">
-                  <Play size={16} fill="currentColor" className={cn(selectedPara?.number === para.number && selectedPara.type === 'surah' ? "text-emerald-500" : "")} />
+                  <Play size={14} fill="currentColor" className={cn(selectedPara?.number === para.number && selectedPara.type === 'surah' ? "text-emerald-500" : "")} />
                 </div>
               </button>
             ))}
@@ -343,33 +343,33 @@ export default function ParaMeanings() {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            className="fixed inset-0 bg-gradient-to-b from-[#2e2e2e] to-[#121212] z-[60] flex flex-col p-8"
+            className="fixed inset-0 bg-gradient-to-b from-[#2e2e2e] to-[#121212] z-[60] flex flex-col p-6"
           >
-            <header className="flex items-center justify-between mb-12">
+            <header className="flex items-center justify-between mb-8">
               <button onClick={() => setShowPlayer(false)} className="p-2 text-white/70 hover:text-white">
-                <ChevronDown size={28} />
+                <ChevronDown size={24} />
               </button>
               <div className="text-center">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-white/60">Playing from Para Meanings</p>
-                <p className="text-xs font-bold">{selectedPara.englishName}</p>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-white/60">Playing from Para Meanings</p>
+                <p className="text-[10px] font-bold">{selectedPara.englishName}</p>
               </div>
               <button className="p-2 text-white/70 hover:text-white">
-                <MoreHorizontal size={24} />
+                <MoreHorizontal size={20} />
               </button>
             </header>
 
-            <div className="flex-1 flex flex-col items-center justify-center gap-12 overflow-hidden">
+            <div className="flex-1 flex flex-col items-center justify-center gap-8 overflow-hidden">
               {loading ? (
                 <div className="flex flex-col items-center gap-4">
-                  <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-emerald-500 font-bold animate-pulse">Loading Verses...</p>
+                  <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-emerald-500 text-sm font-bold animate-pulse">Loading Verses...</p>
                 </div>
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-8">
+                <div className="w-full h-full flex flex-col items-center justify-center gap-6">
                   {showLyrics ? (
                     <div 
                       ref={lyricsRef}
-                      className="w-full h-full overflow-y-auto px-4 py-8 space-y-8 scrollbar-hide"
+                      className="w-full h-full overflow-y-auto px-2 py-4 space-y-6 scrollbar-hide"
                     >
                       {verses.map((v, i) => (
                         <div 
@@ -380,9 +380,9 @@ export default function ParaMeanings() {
                             currentVerseIndex === i ? "opacity-100 scale-105" : "opacity-30 scale-95"
                           )}
                         >
-                          <p className="text-right text-3xl font-arabic mb-4 leading-relaxed" dir="rtl">{v.text}</p>
+                          <p className="text-right text-2xl font-arabic mb-3 leading-relaxed" dir="rtl">{v.text}</p>
                           <p className={cn(
-                            "text-lg font-medium leading-relaxed",
+                            "text-base font-medium leading-relaxed",
                             currentVerseIndex === i && isReadingTranslation ? "text-emerald-400" : "text-white/70"
                           )}>
                             {v.numberInSurah}. {translationVerses[i]?.text || v.text}
@@ -394,30 +394,30 @@ export default function ParaMeanings() {
                     <>
                       <motion.div 
                         animate={{ scale: isPlaying ? 1 : 0.95 }}
-                        className="w-full aspect-square max-w-[320px] bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-2xl shadow-2xl flex items-center justify-center relative overflow-hidden"
+                        className="w-full aspect-square max-w-[280px] bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-2xl shadow-2xl flex items-center justify-center relative overflow-hidden"
                       >
-                        <Music size={120} className="text-white/20 absolute" />
-                        <div className="text-center z-10 p-6">
-                          <h2 className="text-4xl font-black mb-2">{selectedPara.number}</h2>
-                          <p className="text-xl font-bold opacity-80">{selectedPara.type === 'para' ? 'JUZ' : 'SURAH'}</p>
+                        <Music size={100} className="text-white/20 absolute" />
+                        <div className="text-center z-10 p-4">
+                          <h2 className="text-3xl font-black mb-1">{selectedPara.number}</h2>
+                          <p className="text-lg font-bold opacity-80">{selectedPara.type === 'para' ? 'JUZ' : 'SURAH'}</p>
                         </div>
                       </motion.div>
 
-                      <div className="w-full space-y-2">
+                      <div className="w-full space-y-1">
                         <div className="flex justify-between items-end">
                           <div>
-                            <h2 className="text-2xl font-bold">{selectedPara.englishName}</h2>
-                            <p className="text-emerald-500 font-medium">
+                            <h2 className="text-xl font-bold">{selectedPara.englishName}</h2>
+                            <p className="text-emerald-500 text-sm font-medium">
                               {isReadingTranslation ? "Maulana Jalandhari" : "Mishary Rashid Alafasy"}
                             </p>
                           </div>
                           <button className="text-emerald-500">
-                            <Heart size={24} fill="currentColor" />
+                            <Heart size={20} fill="currentColor" />
                           </button>
                         </div>
 
                         {/* Progress Bar */}
-                        <div className="pt-4 space-y-1">
+                        <div className="pt-3 space-y-1">
                           <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                             <motion.div 
                               className="h-full bg-white"
@@ -425,7 +425,7 @@ export default function ParaMeanings() {
                               animate={{ width: verses.length > 0 ? `${((currentVerseIndex + (isReadingTranslation ? 1 : 0.5)) / verses.length) * 100}%` : 0 }}
                             />
                           </div>
-                          <div className="flex justify-between text-[10px] font-bold text-white/40 uppercase tracking-wider">
+                          <div className="flex justify-between text-[9px] font-bold text-white/40 uppercase tracking-wider">
                             <span>Verse {currentVerseIndex + 1}</span>
                             <span>{verses.length} Verses</span>
                           </div>
@@ -437,7 +437,7 @@ export default function ParaMeanings() {
               )}
             </div>
 
-            <div className="mt-auto space-y-8">
+            <div className="mt-auto space-y-6">
               <div className="flex items-center justify-between">
                 <button 
                   onClick={() => setShowLyrics(!showLyrics)}
@@ -446,24 +446,24 @@ export default function ParaMeanings() {
                     showLyrics ? "text-emerald-500" : "text-white/40 hover:text-white"
                   )}
                 >
-                  <List size={20} />
+                  <List size={18} />
                 </button>
-                <div className="flex items-center gap-8">
-                  <button onClick={handlePrev} className="text-white hover:scale-110 transition-transform"><SkipBack size={32} fill="currentColor" /></button>
+                <div className="flex items-center gap-6">
+                  <button onClick={handlePrev} className="text-white hover:scale-110 transition-transform"><SkipBack size={28} fill="currentColor" /></button>
                   <button 
                     onClick={handlePlayPause}
-                    className="w-16 h-16 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform shadow-xl"
+                    className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform shadow-xl"
                   >
-                    {isPlaying ? <Pause size={32} fill="currentColor" /> : <Play size={32} fill="currentColor" className="ml-1" />}
+                    {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
                   </button>
-                  <button onClick={handleNext} className="text-white hover:scale-110 transition-transform"><SkipForward size={32} fill="currentColor" /></button>
+                  <button onClick={handleNext} className="text-white hover:scale-110 transition-transform"><SkipForward size={28} fill="currentColor" /></button>
                 </div>
-                <button className="text-white/40 hover:text-white transition-colors"><Repeat size={20} /></button>
+                <button className="text-white/40 hover:text-white transition-colors"><Repeat size={18} /></button>
               </div>
 
               <div className="flex items-center justify-between text-white/40 px-4">
-                <Volume2 size={20} />
-                <Shuffle size={20} />
+                <Volume2 size={18} />
+                <Shuffle size={18} />
               </div>
             </div>
           </motion.div>

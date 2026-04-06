@@ -19,8 +19,8 @@ export default function Layout({ children }: LayoutProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col max-w-md mx-auto shadow-xl border-x border-slate-200">
-      <main className="flex-1 overflow-y-auto pb-20">
+    <div className="h-screen bg-slate-50 flex flex-col max-w-md mx-auto shadow-xl border-x border-slate-200 overflow-hidden relative">
+      <main className="flex-1 overflow-y-auto pb-20 scroll-smooth">
         {children}
       </main>
       
