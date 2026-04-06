@@ -176,7 +176,7 @@ export default function SurahView() {
   if (!surah) return <div className="p-8 text-center">Surah not found.</div>;
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#fcfcfd]">
+    <div className="flex flex-col min-h-screen bg-[#fcfcfd] pb-24">
       <header className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-slate-100 p-5 flex items-center gap-4 z-50 shadow-sm">
         <motion.button 
           whileHover={{ scale: 1.1 }}
@@ -190,7 +190,7 @@ export default function SurahView() {
           <motion.h1 
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
-            className="font-black text-slate-800 tracking-tight"
+            className="font-black text-slate-800 tracking-tight text-lg"
           >
             {surah.englishName}
           </motion.h1>
@@ -217,15 +217,16 @@ export default function SurahView() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-12 bg-white rounded-[40px] border border-slate-100 shadow-sm relative overflow-hidden group"
+            className="text-center py-16 bg-white rounded-[48px] border border-slate-100 shadow-sm relative overflow-hidden group"
           >
+            <div className="absolute inset-0 bg-islamic-pattern opacity-5 scale-125" />
             <p className="text-5xl font-arabic text-slate-800 relative z-10">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-            <p className="text-[10px] text-slate-400 mt-6 uppercase tracking-[0.3em] font-black relative z-10">In the name of Allah, the Most Gracious, the Most Merciful</p>
+            <p className="text-[10px] text-slate-400 mt-8 uppercase tracking-[0.4em] font-black relative z-10">In the name of Allah, the Most Gracious, the Most Merciful</p>
             <div className="absolute inset-0 bg-emerald-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           </motion.div>
         )}
 
-        <div className="flex flex-col gap-20">
+        <div className="flex flex-col gap-16">
           {surah.ayahs.map((ayah, index) => (
             <motion.div 
               key={ayah.number}
@@ -234,12 +235,18 @@ export default function SurahView() {
               viewport={{ once: true, margin: "-100px" }}
               transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
               className={cn(
-                "flex flex-col gap-8 p-8 rounded-[40px] transition-all duration-700 relative",
-                playingAyah === ayah.number ? "bg-white border-emerald-100 shadow-2xl shadow-emerald-100/50 ring-1 ring-emerald-50" : "bg-white/40 border-transparent"
+                "flex flex-col gap-8 p-8 rounded-[48px] transition-all duration-700 relative overflow-hidden",
+                playingAyah === ayah.number 
+                  ? "bg-white border-emerald-100 shadow-2xl shadow-emerald-200/40 ring-1 ring-emerald-50" 
+                  : "bg-white/60 border border-slate-50 shadow-sm hover:shadow-md hover:bg-white transition-all"
               )}
             >
-              <div className="flex justify-between items-center">
-                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-black shadow-inner">
+              {playingAyah === ayah.number && (
+                <div className="absolute inset-0 bg-islamic-pattern opacity-[0.03] scale-110 pointer-events-none" />
+              )}
+              
+              <div className="flex justify-between items-center relative z-10">
+                <div className="w-14 h-14 rounded-[22px] bg-emerald-50 text-emerald-700 flex items-center justify-center text-sm font-black shadow-inner">
                   {ayah.numberInSurah}
                 </div>
                 <div className="flex gap-3">
@@ -272,33 +279,33 @@ export default function SurahView() {
                 </div>
               </div>
 
-              <div className="space-y-8">
+              <div className="space-y-10 relative z-10">
                 <p className="text-right text-5xl font-arabic leading-[1.8] text-slate-800 font-bold" dir="rtl">
                   {ayah.text}
                 </p>
-                <div className="pt-8 border-t border-slate-100/50">
+                <div className="pt-10 border-t border-slate-100/80">
                   <p 
                     dir="rtl"
                     className={cn(
-                      "text-slate-600 font-medium leading-relaxed transition-all duration-500 text-right text-lg",
-                      isReadingTranslation && playingAyah === ayah.number ? "text-emerald-800 font-black" : "text-slate-600"
+                      "text-slate-600 font-medium leading-relaxed transition-all duration-500 text-right text-xl",
+                      isReadingTranslation && playingAyah === ayah.number ? "text-emerald-800 font-black" : "text-slate-500"
                     )}
                   >
                     {translation?.ayahs[index].text}
                   </p>
-                  <div className="flex items-center justify-between mt-6">
-                    <p className="text-[10px] text-slate-300 uppercase tracking-[0.25em] font-black">Urdu Translation</p>
+                  <div className="flex items-center justify-between mt-8">
+                    <p className="text-[10px] text-slate-300 uppercase tracking-[0.3em] font-black">Urdu Translation</p>
                     {playingAyah === ayah.number && (
                       <motion.div 
                         animate={{ opacity: [0.4, 1, 0.4] }}
                         transition={{ repeat: Infinity, duration: 1.5 }}
-                        className="flex items-center gap-2 text-[10px] text-emerald-600 font-black uppercase tracking-widest"
+                        className="flex items-center gap-3 text-[10px] text-emerald-600 font-black uppercase tracking-widest"
                       >
-                        <div className="flex gap-0.5">
+                        <div className="flex gap-1">
                           {[1, 2, 3].map(i => (
                             <motion.div 
                               key={i}
-                              animate={{ height: [4, 10, 4] }}
+                              animate={{ height: [4, 12, 4] }}
                               transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.1 }}
                               className="w-0.5 bg-emerald-500 rounded-full"
                             />
@@ -314,7 +321,7 @@ export default function SurahView() {
               {playingAyah === ayah.number && (
                 <motion.div 
                   layoutId="active-indicator"
-                  className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-500 rounded-r-full"
+                  className="absolute left-0 top-0 bottom-0 w-1.5 bg-emerald-500 rounded-r-full"
                 />
               )}
             </motion.div>

@@ -1,15 +1,80 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Amiri:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-arabic: "Amiri", serif;
+  
+  --color-emerald-50: #ecfdf5;
+  --color-emerald-100: #d1fae5;
+  --color-emerald-200: #a7f3d0;
+  --color-emerald-300: #6ee7b7;
+  --color-emerald-400: #34d399;
+  --color-emerald-500: #10b981;
+  --color-emerald-600: #059669;
+  --color-emerald-700: #047857;
+  --color-emerald-800: #065f46;
+  --color-emerald-900: #064e3b;
+  --color-emerald-950: #022c22;
+
+  --color-gold-50: #fffbeb;
+  --color-gold-100: #fef3c7;
+  --color-gold-200: #fde68a;
+  --color-gold-300: #fcd34d;
+  --color-gold-400: #fbbf24;
+  --color-gold-500: #f59e0b;
+  --color-gold-600: #d97706;
+  --color-gold-700: #b45309;
+  --color-gold-800: #92400e;
+  --color-gold-900: #78350f;
 }
 
 body {
-  @apply bg-slate-100;
+  @apply bg-[#f8f9fb] text-slate-900 antialiased;
 }
 
 .font-arabic {
   font-family: var(--font-arabic);
+}
+
+/* Islamic Geometric Pattern */
+.bg-islamic-pattern {
+  background-color: currentColor;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M0 0h80v80H0z'/%3E%3Cpath d='M40 0l40 40-40 40L0 40 40 0zm0 10L10 40l30 30 30-30-30-30zm0 10l20 20-20 20-20-20 20-20z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.bg-islamic-pattern-dark {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M0 0h80v80H0z'/%3E%3Cpath d='M40 0l40 40-40 40L0 40 40 0zm0 10L10 40l30 30 30-30-30-30zm0 10l20 20-20 20-20-20 20-20z'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.glass {
+  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl shadow-slate-200/50;
+}
+
+.glass-dark {
+  @apply bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/20;
+}
+
+.gold-gradient {
+  background: linear-gradient(135deg, #fcd34d 0%, #d97706 100%);
+}
+
+.emerald-gradient {
+  background: linear-gradient(135deg, #10b981 0%, #065f46 100%);
+}
+
+.text-gold-premium {
+  @apply bg-clip-text text-transparent bg-gradient-to-br from-gold-300 via-gold-500 to-gold-700;
+}
+
+.islamic-glow {
+  box-shadow: 0 0 30px rgba(16, 185, 129, 0.2);
+}
+
+.islamic-glow-gold {
+  box-shadow: 0 0 30px rgba(245, 158, 11, 0.2);
+}
+
+::-webkit-scrollbar {
+  width: 0px;
 }

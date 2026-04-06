@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -35,119 +35,131 @@ export default function Home() {
   const currentPrayer = times.current === 'none' ? 'Isha' : times.current;
 
   return (
-    <div className="flex flex-col gap-5 p-5 bg-[#f8f9fb] min-h-full">
-      <header className="flex justify-between items-end mb-1">
-        <div>
+    <div className="flex flex-col gap-6 p-6 bg-[#f8f9fb] min-h-full pb-24">
+      <header className="flex justify-between items-center mb-2">
+        <div className="flex flex-col gap-0.5">
           <motion.h1 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="text-2xl font-black text-slate-800 tracking-tight"
+            className="text-3xl font-black text-slate-800 tracking-tight"
           >
             Assalamu Alaikum
           </motion.h1>
-          <motion.p 
+          <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-slate-400 text-[10px] font-bold uppercase tracking-[0.25em]"
+            className="flex items-center gap-2"
           >
-            {format(currentTime, 'EEEE, d MMMM')}
-          </motion.p>
+            <p className="text-emerald-600 text-[11px] font-black uppercase tracking-[0.2em]">
+              {format(currentTime, 'EEEE, d MMMM')}
+            </p>
+            <div className="w-1 h-1 bg-slate-300 rounded-full" />
+            <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em]">
+              {format(currentTime, 'yyyy')}
+            </p>
+          </motion.div>
         </div>
         <motion.button 
-          whileHover={{ scale: 1.05 }}
+          whileHover={{ scale: 1.05, rotate: 5 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => navigate('/settings')}
-          className="p-2.5 bg-white rounded-2xl border border-slate-100 text-slate-400 hover:text-emerald-600 transition-all shadow-sm"
+          className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
         >
-          <SettingsIcon size={20} />
+          <SettingsIcon size={22} strokeWidth={2.5} />
         </motion.button>
       </header>
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", duration: 0.8 }}
-        className="relative overflow-hidden rounded-[40px] bg-emerald-600 p-8 text-white shadow-2xl shadow-emerald-200/50"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ type: "spring", duration: 1 }}
+        className="relative overflow-hidden rounded-[48px] bg-emerald-600 p-9 text-white shadow-2xl shadow-emerald-900/20 group"
       >
+        {/* Pattern Overlay */}
+        <div className="absolute inset-0 bg-islamic-pattern opacity-20 group-hover:scale-110 transition-transform duration-[10s] ease-linear" />
+        
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-2">
-            <motion.div 
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ repeat: Infinity, duration: 2 }}
-              className="w-2 h-2 bg-emerald-300 rounded-full shadow-[0_0_8px_rgba(110,231,183,0.8)]" 
-            />
-            <p className="text-emerald-100 font-bold uppercase tracking-[0.3em] text-[10px]">Next Prayer: {times.next}</p>
-          </div>
-          <h2 className="text-6xl font-black mb-6 tracking-tighter drop-shadow-sm">
-            {format(times.timeForNext, 'HH:mm')}
-          </h2>
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2.5 bg-white/10 px-4 py-2 rounded-2xl backdrop-blur-xl border border-white/10">
-              <Clock size={16} className="text-emerald-200" />
-              <span className="text-sm font-black tracking-tight">{format(currentTime, 'HH:mm:ss')}</span>
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10 flex items-center gap-2">
+              <motion.div 
+                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+                transition={{ repeat: Infinity, duration: 2 }}
+                className="w-2 h-2 bg-emerald-300 rounded-full shadow-[0_0_10px_rgba(110,231,183,1)]" 
+              />
+              <p className="text-white font-black uppercase tracking-[0.2em] text-[10px]">Next: {times.next}</p>
             </div>
-            <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-emerald-200/80">
-              <MapPin size={12} />
-              {location?.lat.toFixed(2)}, {location?.lng.toFixed(2)}
+          </div>
+          
+          <div className="flex flex-col gap-1 mb-8">
+            <h2 className="text-7xl font-black tracking-tighter drop-shadow-2xl">
+              {times.timeForNext ? format(times.timeForNext, 'HH:mm') : '--:--'}
+            </h2>
+            <div className="flex items-center gap-2 text-emerald-100/70 font-black text-xs uppercase tracking-widest">
+              <Clock size={14} strokeWidth={2.5} />
+              <span>Time Remaining: {times.timeForNext ? format(new Date(times.timeForNext.getTime() - currentTime.getTime()), 'H:mm:ss') : '--:--:--'}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between pt-6 border-t border-white/10">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10">
+                <MapPin size={18} className="text-emerald-200" />
+              </div>
+              <div className="flex flex-col">
+                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-200/60">Current Location</p>
+                <p className="text-xs font-black tracking-tight">{location?.lat.toFixed(2)}°N, {location?.lng.toFixed(2)}°E</p>
+              </div>
             </div>
           </div>
         </div>
         
-        {/* Decorative elements */}
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.1, 1],
-            rotate: [0, 5, 0]
-          }}
-          transition={{ repeat: Infinity, duration: 10, ease: "linear" }}
-          className="absolute -right-16 -bottom-16 w-80 h-80 bg-emerald-500 rounded-full opacity-30 blur-[80px]" 
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            rotate: [0, -10, 0]
-          }}
-          transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
-          className="absolute -left-16 -top-16 w-64 h-64 bg-emerald-400 rounded-full opacity-20 blur-[60px]" 
-        />
+        {/* Decorative background blobs */}
+        <div className="absolute -right-20 -top-20 w-64 h-64 bg-emerald-400/30 rounded-full blur-[80px]" />
+        <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-900/40 rounded-full blur-[80px]" />
       </motion.div>
 
-      <section className="grid grid-cols-1 gap-2.5">
+      <section className="grid grid-cols-1 gap-3">
+        <div className="flex items-center justify-between px-2 mb-1">
+          <h3 className="text-[11px] font-black text-slate-400 uppercase tracking-[0.3em]">Prayer Schedule</h3>
+          <div className="h-[1px] flex-1 mx-4 bg-slate-100" />
+        </div>
         {prayerList.map((prayer, i) => (
           <motion.div 
             key={prayer.name}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.2 + i * 0.05 }}
             whileTap={{ scale: 0.98 }}
             className={cn(
-              "flex justify-between items-center p-4 rounded-[28px] border transition-all duration-500",
+              "flex justify-between items-center p-5 rounded-[32px] border transition-all duration-500 group",
               currentPrayer.toLowerCase() === prayer.name.toLowerCase() 
-                ? "bg-white border-emerald-100 shadow-[0_10px_25px_-5px_rgba(16,185,129,0.1)] ring-1 ring-emerald-50" 
-                : "bg-white/60 border-slate-100/50"
+                ? "bg-white border-emerald-100 shadow-xl shadow-emerald-900/5 ring-1 ring-emerald-50" 
+                : "bg-white/40 border-transparent hover:bg-white hover:border-slate-100"
             )}
           >
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-5">
               <div className={cn(
-                "w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-500",
+                "w-14 h-14 rounded-[22px] flex items-center justify-center transition-all duration-500 shadow-inner",
                 currentPrayer.toLowerCase() === prayer.name.toLowerCase() 
                   ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200" 
-                  : "bg-slate-100 text-slate-400"
+                  : "bg-slate-50 text-slate-400 group-hover:bg-emerald-50 group-hover:text-emerald-500"
               )}>
-                <Clock size={20} />
+                <Clock size={22} strokeWidth={2.5} />
               </div>
               <div>
                 <p className={cn(
-                  "font-black text-sm tracking-tight",
+                  "font-black text-base tracking-tight",
                   currentPrayer.toLowerCase() === prayer.name.toLowerCase() ? "text-emerald-900" : "text-slate-700"
                 )}>{prayer.name}</p>
-                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-bold mt-0.5">Adhan at {format(prayer.time, 'HH:mm')}</p>
+                <p className="text-[10px] text-slate-400 uppercase tracking-widest font-black mt-0.5">
+                  {currentPrayer.toLowerCase() === prayer.name.toLowerCase() ? "Current Prayer" : "Upcoming"}
+                </p>
               </div>
             </div>
             <div className="text-right">
               <p className={cn(
-                "text-xl font-black tracking-tighter",
+                "text-2xl font-black tracking-tighter",
                 currentPrayer.toLowerCase() === prayer.name.toLowerCase() ? "text-emerald-600" : "text-slate-800"
               )}>{format(prayer.time, 'HH:mm')}</p>
             </div>
@@ -159,27 +171,36 @@ export default function Home() {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6 }}
-        className="bg-white rounded-[40px] p-7 border border-slate-100 shadow-sm mb-6"
+        className="bg-white rounded-[48px] p-8 border border-slate-100 shadow-sm mb-10 relative overflow-hidden"
       >
-        <div className="flex justify-between items-center mb-5">
-          <h3 className="text-sm font-black text-slate-800 uppercase tracking-widest">Daily Dhikr</h3>
+        <div className="absolute top-0 right-0 p-8 opacity-5">
+          <Fingerprint size={120} />
+        </div>
+        
+        <div className="flex justify-between items-center mb-6 relative z-10">
+          <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em]">Daily Dhikr</h3>
           <button 
             onClick={() => navigate('/tasbih')}
-            className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1 hover:gap-2 transition-all"
+            className="w-8 h-8 bg-emerald-50 text-emerald-600 rounded-full flex items-center justify-center hover:scale-110 transition-transform"
           >
-            Open Tasbih <ChevronRight size={14} />
+            <ChevronRight size={18} strokeWidth={3} />
           </button>
         </div>
+        
         <motion.div 
-          whileHover={{ y: -2 }}
+          whileHover={{ y: -4 }}
           whileTap={{ scale: 0.98 }}
-          className="p-6 bg-emerald-50/50 rounded-[32px] border border-emerald-100/50 relative overflow-hidden group cursor-pointer" 
+          className="p-8 bg-emerald-50 rounded-[40px] border border-emerald-100/50 relative overflow-hidden group cursor-pointer shadow-inner" 
           onClick={() => navigate('/tasbih')}
         >
-          <p className="text-emerald-900 font-arabic text-3xl text-right mb-4 leading-relaxed">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ</p>
-          <p className="text-emerald-800 font-black text-sm mb-1 tracking-tight">SubhanAllah wa bihamdihi</p>
-          <p className="text-[11px] text-emerald-600/80 leading-relaxed font-medium">Glory be to Allah and His is the praise.</p>
-          <div className="absolute -right-6 -bottom-6 w-20 h-20 bg-emerald-200/20 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
+          <div className="absolute inset-0 bg-islamic-pattern-dark opacity-[0.03]" />
+          <p className="text-emerald-900 font-arabic text-4xl text-right mb-6 leading-relaxed relative z-10">سُبْحَانَ اللَّهِ وَبِحَمْدِهِ</p>
+          <div className="relative z-10">
+            <p className="text-emerald-800 font-black text-lg mb-1 tracking-tight">SubhanAllah wa bihamdihi</p>
+            <p className="text-[12px] text-emerald-600/80 leading-relaxed font-bold uppercase tracking-wide">Glory be to Allah and His is the praise.</p>
+          </div>
+          
+          <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-emerald-200/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000" />
         </motion.div>
       </motion.section>
     </div>

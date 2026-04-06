@@ -234,102 +234,137 @@ export default function ParaMeanings() {
   }, [verses]);
 
   return (
-    <div className="flex flex-col h-full bg-[#121212] text-white overflow-hidden">
+    <div className="flex flex-col h-full bg-[#f8f9fb] overflow-hidden pb-24">
       {/* Header */}
-      <header className="p-4 bg-gradient-to-b from-[#1e1e1e] to-[#121212]">
-        <h1 className="text-2xl font-black tracking-tight mb-1">Para Meanings</h1>
-        <p className="text-slate-400 text-xs font-medium">Maulana Jalandhari Urdu Translation</p>
+      <header className="p-6 bg-white border-b border-slate-100 relative overflow-hidden">
+        <div className="absolute inset-0 bg-islamic-pattern opacity-[0.03] scale-150" />
+        <div className="relative z-10">
+          <h1 className="text-2xl font-black tracking-tight text-slate-800 mb-1">Para Meanings</h1>
+          <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em]">Maulana Jalandhari Urdu Translation</p>
+        </div>
       </header>
 
       {/* List of Paras and Surahs */}
-      <div className="flex-1 overflow-y-auto px-3 pb-32">
-        <section className="mb-6">
-          <h2 className="text-lg font-bold mb-3 px-2">30 Paras</h2>
-          <div className="grid grid-cols-1 gap-0.5">
-            {PARAS.filter(p => p.type === 'para').map((para) => (
-              <button
+      <div className="flex-1 overflow-y-auto px-4 py-6 space-y-8">
+        <section>
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h2 className="text-lg font-black text-slate-800 tracking-tight">30 Paras</h2>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Complete Quran</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            {PARAS.filter(p => p.type === 'para').map((para, i) => (
+              <motion.button
                 key={para.number}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.02 }}
                 onClick={() => openPlayer(para)}
                 className={cn(
-                  "flex items-center gap-3 p-2 rounded-lg transition-all group",
-                  selectedPara?.number === para.number && selectedPara.type === 'para' ? "bg-[#282828]" : "hover:bg-[#1a1a1a]"
+                  "flex items-center gap-4 p-4 rounded-[24px] transition-all group relative overflow-hidden border",
+                  selectedPara?.number === para.number && selectedPara.type === 'para' 
+                    ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-100" 
+                    : "bg-white border-slate-100 hover:border-emerald-200 hover:shadow-md text-slate-800"
                 )}
               >
-                <div className="w-10 h-10 bg-[#282828] rounded flex items-center justify-center text-slate-400 group-hover:text-white transition-colors">
-                  <Music size={18} />
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
+                  selectedPara?.number === para.number && selectedPara.type === 'para' 
+                    ? "bg-white/20 text-white" 
+                    : "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white"
+                )}>
+                  <Music size={20} />
                 </div>
                 <div className="flex-1 text-left">
-                  <h3 className={cn(
-                    "font-bold text-sm transition-colors",
-                    selectedPara?.number === para.number && selectedPara.type === 'para' ? "text-emerald-500" : "text-white"
-                  )}>{para.englishName}</h3>
-                  <p className="text-[10px] text-slate-400">{para.name}</p>
+                  <h3 className="font-black text-sm tracking-tight">{para.englishName}</h3>
+                  <p className={cn(
+                    "text-[10px] font-bold uppercase tracking-widest mt-0.5",
+                    selectedPara?.number === para.number && selectedPara.type === 'para' ? "text-emerald-100" : "text-slate-400"
+                  )}>{para.name}</p>
                 </div>
-                <div className="text-slate-500 group-hover:text-white transition-colors">
-                  <Play size={14} fill="currentColor" className={cn(selectedPara?.number === para.number && selectedPara.type === 'para' ? "text-emerald-500" : "")} />
+                <div className={cn(
+                  "transition-all duration-500",
+                  selectedPara?.number === para.number && selectedPara.type === 'para' ? "text-white" : "text-slate-200 group-hover:text-emerald-500"
+                )}>
+                  <Play size={18} fill="currentColor" />
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </section>
 
         <section>
-          <h2 className="text-lg font-bold mb-3 px-2">Popular Surahs</h2>
-          <div className="grid grid-cols-1 gap-0.5">
-            {PARAS.filter(p => p.type === 'surah').map((para) => (
-              <button
+          <div className="flex items-center justify-between mb-4 px-2">
+            <h2 className="text-lg font-black text-slate-800 tracking-tight">Popular Surahs</h2>
+            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Featured</span>
+          </div>
+          <div className="grid grid-cols-1 gap-3">
+            {PARAS.filter(p => p.type === 'surah').map((para, i) => (
+              <motion.button
                 key={para.number}
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 + i * 0.05 }}
                 onClick={() => openPlayer(para)}
                 className={cn(
-                  "flex items-center gap-3 p-2 rounded-lg transition-all group",
-                  selectedPara?.number === para.number && selectedPara.type === 'surah' ? "bg-[#282828]" : "hover:bg-[#1a1a1a]"
+                  "flex items-center gap-4 p-4 rounded-[24px] transition-all group relative overflow-hidden border",
+                  selectedPara?.number === para.number && selectedPara.type === 'surah' 
+                    ? "bg-slate-900 border-slate-800 text-white shadow-xl shadow-slate-200" 
+                    : "bg-white border-slate-100 hover:border-emerald-200 hover:shadow-md text-slate-800"
                 )}
               >
-                <div className="w-10 h-10 bg-emerald-900/30 rounded flex items-center justify-center text-emerald-500 group-hover:text-white transition-colors">
-                  <Music size={18} />
+                <div className={cn(
+                  "w-12 h-12 rounded-2xl flex items-center justify-center transition-colors",
+                  selectedPara?.number === para.number && selectedPara.type === 'surah' 
+                    ? "bg-emerald-600 text-white" 
+                    : "bg-emerald-50 text-emerald-600 group-hover:bg-emerald-600 group-hover:text-white"
+                )}>
+                  <Music size={20} />
                 </div>
                 <div className="flex-1 text-left">
-                  <h3 className={cn(
-                    "font-bold text-sm transition-colors",
-                    selectedPara?.number === para.number && selectedPara.type === 'surah' ? "text-emerald-500" : "text-white"
-                  )}>{para.englishName}</h3>
-                  <p className="text-[10px] text-slate-400">{para.name}</p>
+                  <h3 className="font-black text-sm tracking-tight">{para.englishName}</h3>
+                  <p className={cn(
+                    "text-[10px] font-bold uppercase tracking-widest mt-0.5",
+                    selectedPara?.number === para.number && selectedPara.type === 'surah' ? "text-slate-400" : "text-slate-400"
+                  )}>{para.name}</p>
                 </div>
-                <div className="text-slate-500 group-hover:text-white transition-colors">
-                  <Play size={14} fill="currentColor" className={cn(selectedPara?.number === para.number && selectedPara.type === 'surah' ? "text-emerald-500" : "")} />
+                <div className={cn(
+                  "transition-all duration-500",
+                  selectedPara?.number === para.number && selectedPara.type === 'surah' ? "text-emerald-500" : "text-slate-200 group-hover:text-emerald-500"
+                )}>
+                  <Play size={18} fill="currentColor" />
                 </div>
-              </button>
+              </motion.button>
             ))}
           </div>
         </section>
       </div>
 
-      {/* Spotify-like Player Bar */}
+      {/* Player Bar */}
       <AnimatePresence>
         {selectedPara && (
           <motion.div
             initial={{ y: 100 }}
             animate={{ y: 0 }}
-            className="fixed bottom-20 left-0 right-0 mx-2 bg-[#1e1e1e] rounded-xl p-3 flex items-center justify-between shadow-2xl border border-[#282828] z-50"
+            className="fixed bottom-24 left-4 right-4 bg-slate-900 rounded-[28px] p-4 flex items-center justify-between shadow-2xl z-50 border border-white/5"
             onClick={() => setShowPlayer(true)}
           >
-            <div className="flex items-center gap-3 overflow-hidden">
-              <div className="w-10 h-10 bg-emerald-600 rounded shadow-lg flex items-center justify-center">
-                <Music size={20} className="text-white" />
+            <div className="flex items-center gap-4 overflow-hidden">
+              <div className="w-12 h-12 bg-emerald-600 rounded-2xl shadow-lg flex items-center justify-center flex-shrink-0">
+                <Music size={24} className="text-white" />
               </div>
               <div className="overflow-hidden">
-                <h4 className="text-sm font-bold truncate">{selectedPara.englishName}</h4>
-                <p className="text-[10px] text-slate-400 truncate">
-                  {isReadingTranslation ? "Urdu Translation" : "Arabic Recitation"} - Verse {currentVerseIndex + 1}
+                <h4 className="text-sm font-black text-white truncate tracking-tight">{selectedPara.englishName}</h4>
+                <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest truncate">
+                  {isReadingTranslation ? "Urdu Translation" : "Arabic Recitation"}
                 </p>
               </div>
             </div>
             <div className="flex items-center gap-4">
               <button 
                 onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
-                className="w-10 h-10 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform"
+                className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-900 hover:scale-105 transition-transform shadow-lg"
               >
-                {isPlaying ? <Pause size={20} fill="currentColor" /> : <Play size={20} fill="currentColor" className="ml-1" />}
+                {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
               </button>
             </div>
           </motion.div>
@@ -343,89 +378,112 @@ export default function ParaMeanings() {
             initial={{ y: '100%' }}
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
-            className="fixed inset-0 bg-gradient-to-b from-[#2e2e2e] to-[#121212] z-[60] flex flex-col p-6"
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed inset-0 bg-white z-[60] flex flex-col"
           >
-            <header className="flex items-center justify-between mb-8">
-              <button onClick={() => setShowPlayer(false)} className="p-2 text-white/70 hover:text-white">
+            <div className="absolute inset-0 bg-islamic-pattern opacity-[0.02] scale-150 pointer-events-none" />
+            
+            <header className="flex items-center justify-between p-6 relative z-10">
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowPlayer(false)} 
+                className="p-3 bg-slate-50 text-slate-400 rounded-2xl"
+              >
                 <ChevronDown size={24} />
-              </button>
+              </motion.button>
               <div className="text-center">
-                <p className="text-[9px] font-bold uppercase tracking-widest text-white/60">Playing from Para Meanings</p>
-                <p className="text-[10px] font-bold">{selectedPara.englishName}</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Now Playing</p>
+                <p className="text-xs font-black text-slate-800">{selectedPara.englishName}</p>
               </div>
-              <button className="p-2 text-white/70 hover:text-white">
-                <MoreHorizontal size={20} />
+              <button className="p-3 text-slate-400">
+                <MoreHorizontal size={24} />
               </button>
             </header>
 
-            <div className="flex-1 flex flex-col items-center justify-center gap-8 overflow-hidden">
+            <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10 overflow-hidden">
               {loading ? (
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                  <p className="text-emerald-500 text-sm font-bold animate-pulse">Loading Verses...</p>
+                <div className="flex flex-col items-center gap-6">
+                  <div className="w-16 h-16 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
+                  <p className="text-emerald-600 text-sm font-black uppercase tracking-widest animate-pulse">Loading Verses...</p>
                 </div>
               ) : (
-                <div className="w-full h-full flex flex-col items-center justify-center gap-6">
+                <div className="w-full h-full flex flex-col items-center justify-center gap-10">
                   {showLyrics ? (
                     <div 
                       ref={lyricsRef}
-                      className="w-full h-full overflow-y-auto px-2 py-4 space-y-6 scrollbar-hide"
+                      className="w-full h-full overflow-y-auto py-10 space-y-12 scrollbar-hide"
                     >
                       {verses.map((v, i) => (
-                        <div 
+                        <motion.div 
                           key={v.number} 
                           data-verse-index={i}
                           className={cn(
-                            "transition-all duration-500",
-                            currentVerseIndex === i ? "opacity-100 scale-105" : "opacity-30 scale-95"
+                            "transition-all duration-700 p-6 rounded-[32px]",
+                            currentVerseIndex === i ? "bg-emerald-50 scale-105 shadow-sm" : "opacity-30 scale-95"
                           )}
                         >
-                          <p className="text-right text-2xl font-arabic mb-3 leading-relaxed" dir="rtl">{v.text}</p>
+                          <p className="text-right text-3xl font-arabic mb-6 leading-relaxed text-slate-800 font-bold" dir="rtl">{v.text}</p>
                           <p className={cn(
-                            "text-base font-medium leading-relaxed",
-                            currentVerseIndex === i && isReadingTranslation ? "text-emerald-400" : "text-white/70"
+                            "text-lg font-medium leading-relaxed text-right",
+                            currentVerseIndex === i && isReadingTranslation ? "text-emerald-800 font-black" : "text-slate-500"
                           )}>
-                            {v.numberInSurah}. {translationVerses[i]?.text || v.text}
+                            {translationVerses[i]?.text || v.text}
                           </p>
-                        </div>
+                          <div className="mt-4 flex justify-end">
+                            <span className="text-[10px] font-black text-emerald-600/40 uppercase tracking-widest">Verse {v.numberInSurah}</span>
+                          </div>
+                        </motion.div>
                       ))}
                     </div>
                   ) : (
                     <>
                       <motion.div 
-                        animate={{ scale: isPlaying ? 1 : 0.95 }}
-                        className="w-full aspect-square max-w-[280px] bg-gradient-to-br from-emerald-600 to-emerald-900 rounded-2xl shadow-2xl flex items-center justify-center relative overflow-hidden"
+                        animate={{ 
+                          scale: isPlaying ? 1 : 0.9,
+                          rotate: isPlaying ? [0, 1, -1, 0] : 0
+                        }}
+                        transition={{ 
+                          rotate: { repeat: Infinity, duration: 5, ease: "linear" }
+                        }}
+                        className="w-full aspect-square max-w-[320px] bg-slate-900 rounded-[48px] shadow-2xl flex items-center justify-center relative overflow-hidden group"
                       >
-                        <Music size={100} className="text-white/20 absolute" />
-                        <div className="text-center z-10 p-4">
-                          <h2 className="text-3xl font-black mb-1">{selectedPara.number}</h2>
-                          <p className="text-lg font-bold opacity-80">{selectedPara.type === 'para' ? 'JUZ' : 'SURAH'}</p>
+                        <div className="absolute inset-0 bg-islamic-pattern opacity-10 scale-150" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-transparent" />
+                        <Music size={120} className="text-white/5 absolute" />
+                        <div className="text-center z-10">
+                          <h2 className="text-6xl font-black text-white mb-2 tracking-tighter">{selectedPara.number}</h2>
+                          <p className="text-xl font-black text-emerald-400 uppercase tracking-[0.3em]">{selectedPara.type === 'para' ? 'JUZ' : 'SURAH'}</p>
                         </div>
+                        <div className="absolute inset-4 border-2 border-white/5 rounded-[40px]" />
                       </motion.div>
 
-                      <div className="w-full space-y-1">
-                        <div className="flex justify-between items-end">
+                      <div className="w-full space-y-8">
+                        <div className="flex justify-between items-center">
                           <div>
-                            <h2 className="text-xl font-bold">{selectedPara.englishName}</h2>
-                            <p className="text-emerald-500 text-sm font-medium">
+                            <h2 className="text-3xl font-black text-slate-800 tracking-tight mb-1">{selectedPara.englishName}</h2>
+                            <p className="text-emerald-600 text-sm font-black uppercase tracking-widest">
                               {isReadingTranslation ? "Maulana Jalandhari" : "Mishary Rashid Alafasy"}
                             </p>
                           </div>
-                          <button className="text-emerald-500">
-                            <Heart size={20} fill="currentColor" />
-                          </button>
+                          <motion.button 
+                            whileTap={{ scale: 0.8 }}
+                            className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center"
+                          >
+                            <Heart size={24} fill="currentColor" />
+                          </motion.button>
                         </div>
 
                         {/* Progress Bar */}
-                        <div className="pt-3 space-y-1">
-                          <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                        <div className="space-y-3">
+                          <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                             <motion.div 
-                              className="h-full bg-white"
+                              className="h-full bg-emerald-600 rounded-full"
                               initial={{ width: 0 }}
                               animate={{ width: verses.length > 0 ? `${((currentVerseIndex + (isReadingTranslation ? 1 : 0.5)) / verses.length) * 100}%` : 0 }}
+                              transition={{ duration: 0.5 }}
                             />
                           </div>
-                          <div className="flex justify-between text-[9px] font-bold text-white/40 uppercase tracking-wider">
+                          <div className="flex justify-between text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
                             <span>Verse {currentVerseIndex + 1}</span>
                             <span>{verses.length} Verses</span>
                           </div>
@@ -437,33 +495,48 @@ export default function ParaMeanings() {
               )}
             </div>
 
-            <div className="mt-auto space-y-6">
+            <div className="p-8 bg-slate-50 rounded-t-[64px] space-y-8 relative z-10">
               <div className="flex items-center justify-between">
-                <button 
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => setShowLyrics(!showLyrics)}
                   className={cn(
-                    "transition-colors",
-                    showLyrics ? "text-emerald-500" : "text-white/40 hover:text-white"
+                    "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
+                    showLyrics ? "bg-emerald-600 text-white shadow-lg" : "bg-white text-slate-400 shadow-sm"
                   )}
                 >
-                  <List size={18} />
-                </button>
-                <div className="flex items-center gap-6">
-                  <button onClick={handlePrev} className="text-white hover:scale-110 transition-transform"><SkipBack size={28} fill="currentColor" /></button>
-                  <button 
+                  <List size={20} />
+                </motion.button>
+                <div className="flex items-center gap-8">
+                  <motion.button whileTap={{ scale: 0.8 }} onClick={handlePrev} className="text-slate-800"><SkipBack size={32} fill="currentColor" /></motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={handlePlayPause}
-                    className="w-14 h-14 bg-white rounded-full flex items-center justify-center text-black hover:scale-105 transition-transform shadow-xl"
+                    className="w-20 h-20 bg-slate-900 rounded-[32px] flex items-center justify-center text-white shadow-2xl shadow-slate-400"
                   >
-                    {isPlaying ? <Pause size={28} fill="currentColor" /> : <Play size={28} fill="currentColor" className="ml-1" />}
-                  </button>
-                  <button onClick={handleNext} className="text-white hover:scale-110 transition-transform"><SkipForward size={28} fill="currentColor" /></button>
+                    {isPlaying ? <Pause size={36} fill="currentColor" /> : <Play size={36} fill="currentColor" className="ml-1" />}
+                  </motion.button>
+                  <motion.button whileTap={{ scale: 0.8 }} onClick={handleNext} className="text-slate-800"><SkipForward size={32} fill="currentColor" /></motion.button>
                 </div>
-                <button className="text-white/40 hover:text-white transition-colors"><Repeat size={18} /></button>
+                <motion.button whileTap={{ scale: 0.9 }} className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-400 shadow-sm">
+                  <Repeat size={20} />
+                </motion.button>
               </div>
 
-              <div className="flex items-center justify-between text-white/40 px-4">
-                <Volume2 size={18} />
-                <Shuffle size={18} />
+              <div className="flex items-center justify-between text-slate-300 px-6">
+                <Volume2 size={20} />
+                <div className="flex gap-1">
+                  {[1, 2, 3].map(i => (
+                    <motion.div 
+                      key={i}
+                      animate={{ height: isPlaying ? [4, 12, 4] : 4 }}
+                      transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.1 }}
+                      className="w-1 bg-emerald-500 rounded-full"
+                    />
+                  ))}
+                </div>
+                <Shuffle size={20} />
               </div>
             </div>
           </motion.div>
