@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { NavLink } from 'react-router-dom';
 import { Home, BookOpen, Compass, MapPin, Settings, Fingerprint, List } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { motion } from 'motion/react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -24,20 +25,31 @@ export default function Layout({ children }: LayoutProps) {
         {children}
       </main>
       
-      <nav className="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 px-6 py-3 flex justify-between items-center z-50">
+      <nav className="fixed bottom-0 w-full max-w-md bg-white/80 backdrop-blur-xl border-t border-slate-200 px-4 py-3 flex justify-between items-center z-50">
         {navItems.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) =>
               cn(
-                "flex flex-col items-center gap-1 transition-colors",
+                "relative flex flex-col items-center gap-1 transition-all duration-300 px-2 py-1 rounded-xl",
                 isActive ? "text-emerald-600" : "text-slate-400 hover:text-slate-600"
               )
             }
           >
-            <item.icon size={24} />
-            <span className="text-[10px] font-medium uppercase tracking-wider">{item.label}</span>
+            {({ isActive }) => (
+              <>
+                {isActive && (
+                  <motion.div
+                    layoutId="nav-active"
+                    className="absolute inset-0 bg-emerald-50 rounded-xl -z-10"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
+                <item.icon size={22} className={cn("transition-transform duration-300", isActive && "scale-110")} />
+                <span className="text-[9px] font-bold uppercase tracking-wider">{item.label}</span>
+              </>
+            )}
           </NavLink>
         ))}
       </nav>

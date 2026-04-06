@@ -42,106 +42,150 @@ export default function Settings() {
   }, []);
 
   return (
-    <div className="p-6 flex flex-col gap-8 bg-[#f8f9fb] min-h-full">
-      <header>
-        <h1 className="text-2xl font-bold text-slate-800">Settings</h1>
-        <p className="text-slate-500 text-sm">Customize your prayer experience</p>
+    <div className="p-7 flex flex-col gap-8 bg-[#f8f9fb] min-h-full">
+      <header className="flex flex-col gap-1">
+        <motion.h1 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="text-3xl font-black text-slate-800 tracking-tight"
+        >
+          Settings
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-slate-400 text-[11px] font-black uppercase tracking-widest"
+        >
+          Customize your prayer experience
+        </motion.p>
       </header>
 
       {/* Adhan Alarm Toggle */}
-      <section className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+        className="bg-white p-7 rounded-[40px] border border-slate-100 shadow-sm"
+      >
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <div className={cn(
-              "w-12 h-12 rounded-2xl flex items-center justify-center transition-all",
-              settings.adhanEnabled ? "bg-emerald-100 text-emerald-600" : "bg-slate-100 text-slate-400"
+              "w-14 h-14 rounded-[22px] flex items-center justify-center transition-all duration-500 shadow-inner",
+              settings.adhanEnabled ? "bg-emerald-50 text-emerald-600" : "bg-slate-50 text-slate-400"
             )}>
-              {settings.adhanEnabled ? <Bell size={24} /> : <BellOff size={24} />}
+              {settings.adhanEnabled ? <Bell size={26} /> : <BellOff size={26} />}
             </div>
             <div>
-              <h3 className="font-bold text-slate-800">Adhan Alarm</h3>
-              <p className="text-xs text-slate-400">Play Adhan at prayer times</p>
+              <h3 className="font-black text-slate-800 tracking-tight">Adhan Alarm</h3>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Play Adhan at prayer times</p>
             </div>
           </div>
           <button 
             onClick={() => toggleAdhan(!settings.adhanEnabled)}
             className={cn(
-              "w-14 h-8 rounded-full transition-all relative p-1",
+              "w-16 h-9 rounded-full transition-all relative p-1.5 shadow-inner",
               settings.adhanEnabled ? "bg-emerald-500" : "bg-slate-200"
             )}
           >
             <motion.div 
-              animate={{ x: settings.adhanEnabled ? 24 : 0 }}
-              className="w-6 h-6 bg-white rounded-full shadow-sm"
+              animate={{ x: settings.adhanEnabled ? 28 : 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className="w-6 h-6 bg-white rounded-full shadow-md"
             />
           </button>
         </div>
-      </section>
+      </motion.section>
 
       {/* Adhan Audio Choice */}
-      <section className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <Volume2 size={20} className="text-emerald-600" />
-          <h3 className="font-bold text-slate-800">Adhan Audio</h3>
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white p-7 rounded-[40px] border border-slate-100 shadow-sm"
+      >
+        <div className="flex items-center gap-3 mb-7">
+          <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+            <Volume2 size={20} />
+          </div>
+          <h3 className="font-black text-slate-800 tracking-tight">Adhan Audio</h3>
         </div>
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 gap-3">
           {ADHAN_OPTIONS.map((option) => (
-            <button 
+            <motion.button 
               key={option.url}
+              whileHover={{ scale: 1.01 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => {
                 setAdhanAudio(option.url);
                 previewAudio(option.url);
               }}
               className={cn(
-                "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                settings.adhanAudio === option.url ? "bg-emerald-50 border-emerald-200" : "bg-slate-50 border-transparent hover:bg-slate-100"
+                "flex items-center justify-between p-5 rounded-[24px] border transition-all duration-500",
+                settings.adhanAudio === option.url 
+                  ? "bg-emerald-50 border-emerald-100 shadow-sm" 
+                  : "bg-slate-50 border-transparent hover:bg-slate-100"
               )}
             >
               <span className={cn(
-                "font-medium",
-                settings.adhanAudio === option.url ? "text-emerald-700" : "text-slate-600"
+                "font-black text-sm tracking-tight",
+                settings.adhanAudio === option.url ? "text-emerald-800" : "text-slate-600"
               )}>{option.name}</span>
-              {settings.adhanAudio === option.url && <div className="w-2 h-2 bg-emerald-500 rounded-full" />}
-            </button>
+              {settings.adhanAudio === option.url && (
+                <motion.div 
+                  layoutId="active-audio"
+                  className="w-2.5 h-2.5 bg-emerald-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.5)]" 
+                />
+              )}
+            </motion.button>
           ))}
         </div>
-      </section>
+      </motion.section>
 
       {/* Time Adjustments */}
-      <section className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <Clock size={20} className="text-emerald-600" />
-          <h3 className="font-bold text-slate-800">Adjust Prayer Times</h3>
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-white p-7 rounded-[40px] border border-slate-100 shadow-sm"
+      >
+        <div className="flex items-center gap-3 mb-7">
+          <div className="w-10 h-10 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600">
+            <Clock size={20} />
+          </div>
+          <h3 className="font-black text-slate-800 tracking-tight">Adjust Prayer Times</h3>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3">
           {prayers.map((prayer) => (
-            <div key={prayer.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-2xl">
-              <span className="font-medium text-slate-700">{prayer.name}</span>
-              <div className="flex items-center gap-4">
-                <button 
+            <div key={prayer.id} className="flex items-center justify-between p-5 bg-slate-50 rounded-[24px] border border-transparent hover:border-slate-100 transition-all">
+              <span className="font-black text-sm text-slate-700 tracking-tight">{prayer.name}</span>
+              <div className="flex items-center gap-5">
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => updateOffsets({ [prayer.id]: settings.offsets[prayer.id as keyof typeof settings.offsets] - 1 })}
-                  className="w-8 h-8 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="w-10 h-10 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all shadow-sm font-black"
                 >
                   -
-                </button>
-                <span className="w-12 text-center font-bold text-emerald-600">
+                </motion.button>
+                <span className="w-14 text-center font-black text-emerald-600 text-sm tracking-tighter">
                   {settings.offsets[prayer.id as keyof typeof settings.offsets] > 0 ? '+' : ''}
                   {settings.offsets[prayer.id as keyof typeof settings.offsets]}m
                 </span>
-                <button 
+                <motion.button 
+                  whileTap={{ scale: 0.9 }}
                   onClick={() => updateOffsets({ [prayer.id]: settings.offsets[prayer.id as keyof typeof settings.offsets] + 1 })}
-                  className="w-8 h-8 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors"
+                  className="w-10 h-10 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all shadow-sm font-black"
                 >
                   +
-                </button>
+                </motion.button>
               </div>
             </div>
           ))}
         </div>
-      </section>
+      </motion.section>
 
-      <div className="text-center py-8">
-        <p className="text-[10px] text-slate-300 uppercase tracking-widest font-bold">Islamic App v2.0</p>
+      <div className="text-center py-12">
+        <p className="text-[10px] text-slate-300 uppercase tracking-[0.4em] font-black">Islamic App v2.0</p>
       </div>
     </div>
   );

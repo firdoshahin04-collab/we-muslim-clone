@@ -177,117 +177,172 @@ export default function SurahView() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfcfd]">
-      <header className="sticky top-0 bg-white/90 backdrop-blur-md border-b border-slate-100 p-4 flex items-center gap-4 z-10 shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-100 rounded-full transition-colors">
-          <ChevronLeft size={24} />
-        </button>
+      <header className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-slate-100 p-5 flex items-center gap-4 z-50 shadow-sm">
+        <motion.button 
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => navigate(-1)} 
+          className="p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-2xl transition-all"
+        >
+          <ChevronLeft size={22} />
+        </motion.button>
         <div className="flex-1">
-          <h1 className="font-bold text-slate-800">{surah.englishName}</h1>
-          <p className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">{surah.revelationType} • {surah.numberOfAyahs} Verses</p>
+          <motion.h1 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="font-black text-slate-800 tracking-tight"
+          >
+            {surah.englishName}
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em]"
+          >
+            {surah.revelationType} • {surah.numberOfAyahs} Verses
+          </motion.p>
         </div>
-        <div className="text-right">
-          <p className="text-2xl font-arabic text-emerald-700 leading-none">{surah.name}</p>
-        </div>
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-right"
+        >
+          <p className="text-3xl font-arabic text-emerald-700 leading-none font-bold">{surah.name}</p>
+        </motion.div>
       </header>
 
-      <div className="p-6 flex flex-col gap-10">
+      <div className="p-6 flex flex-col gap-12">
         {surah.number !== 1 && surah.number !== 9 && (
           <motion.div 
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center py-10 bg-white rounded-[32px] border border-slate-100 shadow-sm"
+            className="text-center py-12 bg-white rounded-[40px] border border-slate-100 shadow-sm relative overflow-hidden group"
           >
-            <p className="text-4xl font-arabic text-slate-800">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
-            <p className="text-xs text-slate-400 mt-4 uppercase tracking-widest font-medium">In the name of Allah, the Most Gracious, the Most Merciful</p>
+            <p className="text-5xl font-arabic text-slate-800 relative z-10">بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ</p>
+            <p className="text-[10px] text-slate-400 mt-6 uppercase tracking-[0.3em] font-black relative z-10">In the name of Allah, the Most Gracious, the Most Merciful</p>
+            <div className="absolute inset-0 bg-emerald-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
           </motion.div>
         )}
 
-        <div className="flex flex-col gap-16">
+        <div className="flex flex-col gap-20">
           {surah.ayahs.map((ayah, index) => (
             <motion.div 
               key={ayah.number}
-              initial={{ opacity: 0, x: index % 2 === 0 ? -10 : 10 }}
-              whileInView={{ opacity: 1, x: 0 }}
-              viewport={{ once: true, margin: "-50px" }}
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
               className={cn(
-                "flex flex-col gap-6 p-6 rounded-[32px] transition-all duration-500",
-                playingAyah === ayah.number ? "bg-emerald-50 border-emerald-100 shadow-md" : "bg-white border-transparent"
+                "flex flex-col gap-8 p-8 rounded-[40px] transition-all duration-700 relative",
+                playingAyah === ayah.number ? "bg-white border-emerald-100 shadow-2xl shadow-emerald-100/50 ring-1 ring-emerald-50" : "bg-white/40 border-transparent"
               )}
             >
               <div className="flex justify-between items-center">
-                <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-black shadow-sm">
+                <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center text-xs font-black shadow-inner">
                   {ayah.numberInSurah}
                 </div>
                 <div className="flex gap-3">
-                  <button 
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => playSequentialAudio(index)}
                     className={cn(
-                      "w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-sm",
-                      playingAyah === ayah.number && !isReadingTranslation ? "bg-emerald-600 text-white scale-110" : "bg-slate-50 text-slate-400 hover:text-emerald-600"
+                      "w-14 h-14 rounded-[22px] flex items-center justify-center transition-all duration-500 shadow-sm",
+                      playingAyah === ayah.number && !isReadingTranslation 
+                        ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200" 
+                        : "bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
                     )}
-                    title="Play Arabic + Urdu"
                   >
-                    {playingAyah === ayah.number && !isReadingTranslation ? <Pause size={20} /> : <Play size={20} />}
-                  </button>
-                  <button 
+                    {playingAyah === ayah.number && !isReadingTranslation ? <Pause size={24} /> : <Play size={24} />}
+                  </motion.button>
+                  <motion.button 
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => playUrduOnly(index)}
                     className={cn(
-                      "w-12 h-12 rounded-2xl flex items-center justify-center transition-all shadow-sm",
-                      playingAyah === ayah.number && isReadingTranslation ? "bg-emerald-600 text-white scale-110" : "bg-slate-50 text-slate-400 hover:text-emerald-600"
+                      "w-14 h-14 rounded-[22px] flex items-center justify-center transition-all duration-500 shadow-sm",
+                      playingAyah === ayah.number && isReadingTranslation 
+                        ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200" 
+                        : "bg-slate-50 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50"
                     )}
-                    title="Play Urdu Translation"
                   >
-                    <Volume2 size={20} />
-                  </button>
+                    <Volume2 size={24} />
+                  </motion.button>
                 </div>
               </div>
 
-              <div className="space-y-6">
-                <p className="text-right text-4xl font-arabic leading-[1.8] text-slate-800" dir="rtl">
+              <div className="space-y-8">
+                <p className="text-right text-5xl font-arabic leading-[1.8] text-slate-800 font-bold" dir="rtl">
                   {ayah.text}
                 </p>
-                <div className="pt-4 border-t border-slate-100">
+                <div className="pt-8 border-t border-slate-100/50">
                   <p 
                     dir="rtl"
                     className={cn(
-                      "text-slate-600 font-medium leading-relaxed transition-colors duration-300 text-right",
-                      isReadingTranslation && playingAyah === ayah.number ? "text-emerald-700 font-bold" : "text-slate-600"
+                      "text-slate-600 font-medium leading-relaxed transition-all duration-500 text-right text-lg",
+                      isReadingTranslation && playingAyah === ayah.number ? "text-emerald-800 font-black" : "text-slate-600"
                     )}
                   >
                     {translation?.ayahs[index].text}
                   </p>
-                  <div className="flex items-center justify-between mt-4">
-                    <p className="text-[10px] text-slate-300 uppercase tracking-widest font-bold">Urdu Translation</p>
-                    {isReadingTranslation && playingAyah === ayah.number && (
+                  <div className="flex items-center justify-between mt-6">
+                    <p className="text-[10px] text-slate-300 uppercase tracking-[0.25em] font-black">Urdu Translation</p>
+                    {playingAyah === ayah.number && (
                       <motion.div 
                         animate={{ opacity: [0.4, 1, 0.4] }}
                         transition={{ repeat: Infinity, duration: 1.5 }}
-                        className="flex items-center gap-1 text-[10px] text-emerald-600 font-bold uppercase tracking-widest"
+                        className="flex items-center gap-2 text-[10px] text-emerald-600 font-black uppercase tracking-widest"
                       >
-                        <Volume2 size={10} /> Reading...
+                        <div className="flex gap-0.5">
+                          {[1, 2, 3].map(i => (
+                            <motion.div 
+                              key={i}
+                              animate={{ height: [4, 10, 4] }}
+                              transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.1 }}
+                              className="w-0.5 bg-emerald-500 rounded-full"
+                            />
+                          ))}
+                        </div>
+                        {isReadingTranslation ? "Reading Translation..." : "Reciting Arabic..."}
                       </motion.div>
                     )}
                   </div>
                 </div>
               </div>
+              
+              {playingAyah === ayah.number && (
+                <motion.div 
+                  layoutId="active-indicator"
+                  className="absolute left-0 top-1/4 bottom-1/4 w-1 bg-emerald-500 rounded-r-full"
+                />
+              )}
             </motion.div>
           ))}
         </div>
       </div>
       
-      {/* PDF Link Section */}
-      <div className="p-8 mt-12 bg-slate-900 text-white rounded-t-[48px]">
-        <h3 className="text-xl font-bold mb-4">Full Quran PDF</h3>
-        <p className="text-slate-400 text-sm mb-6">Download or read the complete Holy Quran in high-quality PDF format.</p>
-        <a 
-          href="https://quran.com/pdf" 
-          target="_blank" 
-          rel="noopener noreferrer"
-          className="block w-full py-4 bg-emerald-600 rounded-2xl text-center font-bold hover:bg-emerald-500 transition-colors"
-        >
-          Open Quran PDF
-        </a>
-      </div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        className="p-10 mt-20 bg-slate-900 text-white rounded-t-[60px] relative overflow-hidden"
+      >
+        <div className="relative z-10">
+          <h3 className="text-2xl font-black mb-4 tracking-tight">Full Quran PDF</h3>
+          <p className="text-slate-400 text-sm mb-8 leading-relaxed max-w-xs">Download or read the complete Holy Quran in high-quality PDF format for offline reading.</p>
+          <motion.a 
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            href="https://quran.com/pdf" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-block w-full py-5 bg-emerald-600 rounded-[24px] text-center font-black uppercase tracking-widest text-sm hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-900/20"
+          >
+            Open Quran PDF
+          </motion.a>
+        </div>
+        <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-600/10 rounded-full blur-3xl" />
+      </motion.div>
     </div>
   );
 }
