@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { getPrayerTimes } from '../lib/adhan';
-import { format, addMinutes, isSameMinute } from 'date-fns';
+import { format, addMinutes, isSameMinute, startOfDay, addDays } from 'date-fns';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Capacitor } from '@capacitor/core';
 
 interface PrayerOffsets {
   fajr: number;
@@ -50,6 +52,47 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [times, setTimes] = useState<any>(null);
   const [lastPlayed, setLastPlayed] = useState<string | null>(null);
 
+  // Request Notification Permissions
+  useEffect(() => {
+    if (Capacitor.isNativePlatform()) {
+      LocalNotifications.requestPermissions();
+    }
+  }, []);
+
+  // Schedule Notifications for Background Azan
+  const scheduleNotifications = useCallback(async (prayerTimes: any) => {
+    if (!Capacitor.isNativePlatform() || !settings.adhanEnabled) return;
+
+    try {
+      // Cancel existing notifications first
+      await LocalNotifications.cancel({ notifications: [{ id: 1 }, { id: 2 }, { id: 3 }, { id: 4 }, { id: 5 }] });
+
+      const prayers = [
+        { id: 1, name: 'Fajr', time: prayerTimes.fajr },
+        { id: 2, name: 'Dhuhr', time: prayerTimes.dhuhr },
+        { id: 3, name: 'Asr', time: prayerTimes.asr },
+        { id: 4, name: 'Maghrib', time: prayerTimes.maghrib },
+        { id: 5, name: 'Isha', time: prayerTimes.isha },
+      ];
+
+      const notifications = prayers
+        .filter(p => p.time > new Date()) // Only schedule future prayers
+        .map(p => ({
+          id: p.id,
+          title: `Time for ${p.name}`,
+          body: `It's time for ${p.name} prayer.`,
+          schedule: { at: p.time, allowWhileIdle: true },
+          sound: 'azan.wav', // Custom sound in android/app/src/main/res/raw/
+        }));
+
+      if (notifications.length > 0) {
+        await LocalNotifications.schedule({ notifications });
+      }
+    } catch (e) {
+      console.error("Failed to schedule notifications:", e);
+    }
+  }, [settings.adhanEnabled]);
+
   useEffect(() => {
     localStorage.setItem('prayer_settings', JSON.stringify(settings));
   }, [settings]);
@@ -80,6 +123,12 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   useEffect(() => {
     calculateTimes();
   }, [calculateTimes]);
+
+  useEffect(() => {
+    if (times) {
+      scheduleNotifications(times);
+    }
+  }, [times, scheduleNotifications]);
 
   // Adhan Alarm Logic
   useEffect(() => {
