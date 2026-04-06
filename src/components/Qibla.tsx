@@ -9,71 +9,44 @@ export default function Qibla() {
   const [qibla, setQibla] = useState<number | null>(null);
   const [heading, setHeading] = useState(0);
   const [permissionGranted, setPermissionGranted] = useState(false);
-  const [isManual, setIsManual] = useState(false);
 
   const requestPermission = async () => {
-    // Check if it's iOS and needs permission
     if (typeof (DeviceOrientationEvent as any).requestPermission === 'function') {
       try {
         const response = await (DeviceOrientationEvent as any).requestPermission();
         if (response === 'granted') {
           setPermissionGranted(true);
-        } else {
-          alert("Permission denied for compass. You can use manual mode.");
-          setIsManual(true);
-          setPermissionGranted(true);
+          startListening();
         }
       } catch (err) {
-        console.error("Permission error:", err);
-        setIsManual(true);
-        setPermissionGranted(true);
+        console.error(err);
       }
     } else {
-      // For Android and browsers that don't need explicit permission
       setPermissionGranted(true);
+      startListening();
     }
   };
 
-  useEffect(() => {
-    if (!permissionGranted || isManual) return;
-
+  const startListening = () => {
     const handleOrientation = (e: any) => {
-      let currentHeading = 0;
-      
-      // iOS
+      // Use webkitCompassHeading for iOS
       if (e.webkitCompassHeading !== undefined) {
-        currentHeading = e.webkitCompassHeading;
-      } 
-      // Android / Standard
-      else if (e.alpha !== null) {
-        if (e.absolute === true || e.webkitCompassHeading === undefined) {
-          currentHeading = 360 - e.alpha;
-        } else {
-          currentHeading = e.alpha;
-        }
+        setHeading(e.webkitCompassHeading);
+      } else if (e.alpha !== null) {
+        // For Android, alpha is 0 when the device is pointing North in absolute mode
+        setHeading(360 - e.alpha);
       }
-      
-      setHeading(currentHeading);
     };
 
-    // Check if we are in a browser that might not have orientation sensors
-    const hasSensor = 'ondeviceorientation' in window || 'ondeviceorientationabsolute' in window;
-    const isTouch = 'ontouchstart' in window;
-
-    if (!hasSensor || !isTouch) {
-      setIsManual(true);
-      return;
+    if (window.DeviceOrientationEvent) {
+      // Try absolute orientation first (Android)
+      if ('ondeviceorientationabsolute' in (window as any)) {
+        (window as any).addEventListener('deviceorientationabsolute', handleOrientation, true);
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation, true);
+      }
     }
-
-    const absoluteListener = 'ondeviceorientationabsolute' in window;
-    const eventName = absoluteListener ? 'deviceorientationabsolute' : 'deviceorientation';
-
-    window.addEventListener(eventName, handleOrientation, true);
-
-    return () => {
-      window.removeEventListener(eventName, handleOrientation, true);
-    };
-  }, [permissionGranted, isManual]);
+  };
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -85,6 +58,7 @@ export default function Qibla() {
       },
       (err) => {
         console.error("Geolocation error:", err);
+        // Default to Mecca if location fails
         const lat = 21.4225;
         const lng = 39.8262;
         setLocation({ lat, lng });
@@ -95,19 +69,9 @@ export default function Qibla() {
 
   return (
     <div className="p-4 flex flex-col gap-4 items-center h-full bg-[#fcfcfd]">
-      <header className="w-full flex justify-between items-center">
-        <div>
-          <h1 className="text-xl font-bold text-slate-800">Qibla Direction</h1>
-          <p className="text-slate-500 text-xs">Accurate direction towards the Kaaba</p>
-        </div>
-        {permissionGranted && (
-          <button 
-            onClick={() => setIsManual(!isManual)}
-            className="text-[10px] font-bold uppercase tracking-widest text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg"
-          >
-            {isManual ? "Auto Mode" : "Manual Mode"}
-          </button>
-        )}
+      <header className="w-full">
+        <h1 className="text-xl font-bold text-slate-800">Qibla Direction</h1>
+        <p className="text-slate-500 text-xs">Accurate direction towards the Kaaba</p>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full">
@@ -135,20 +99,6 @@ export default function Qibla() {
           </motion.div>
         ) : (
           <div className="relative flex flex-col items-center gap-8">
-            {isManual && (
-              <div className="w-full max-w-[200px] space-y-2">
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center">Rotate Manually</p>
-                <input 
-                  type="range" 
-                  min="0" 
-                  max="360" 
-                  value={heading} 
-                  onChange={(e) => setHeading(Number(e.target.value))}
-                  className="w-full h-1.5 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-600"
-                />
-              </div>
-            )}
-            
             <div className="relative w-64 h-64 flex items-center justify-center">
               {/* Outer Ring with Glow */}
               <div className={cn(
@@ -236,23 +186,66 @@ export default function Qibla() {
           </div>
         )}
 
-        <div className="bg-white p-4 rounded-[28px] border border-slate-100 shadow-sm w-full max-w-sm">
-          <h3 className="text-sm font-bold text-slate-800 mb-2 flex items-center gap-2">
+        <div className="bg-white p-5 rounded-[32px] border border-slate-100 shadow-sm w-full max-w-sm">
+          <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2 uppercase tracking-widest">
             <Info size={16} className="text-emerald-600" />
             Accuracy Guide
           </h3>
-          <div className="space-y-2">
-            <div className="flex gap-2">
-              <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center text-[9px] font-bold text-slate-400">01</div>
-              <p className="text-[10px] text-slate-500 leading-relaxed">Place your device on a flat surface or hold it level.</p>
+          <div className="space-y-4">
+            <div className="flex gap-3 items-center">
+              <div className="w-6 h-6 rounded-xl bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 shrink-0">01</div>
+              <p className="text-[11px] text-slate-500 font-bold leading-tight">Place your device on a flat surface or hold it level.</p>
             </div>
-            <div className="flex gap-2">
-              <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center text-[9px] font-bold text-slate-400">02</div>
-              <p className="text-[10px] text-slate-500 leading-relaxed">Move your phone in a figure-8 motion to calibrate.</p>
+            
+            <div className="flex gap-3 items-start bg-emerald-50/30 p-3 rounded-2xl border border-emerald-50/50">
+              <div className="w-6 h-6 rounded-xl bg-emerald-100 flex items-center justify-center text-[10px] font-black text-emerald-600 shrink-0">02</div>
+              <div className="flex-1 space-y-3">
+                <p className="text-[11px] text-emerald-800 font-black leading-tight">Move your phone in a figure-8 motion to calibrate.</p>
+                <div className="relative h-16 bg-white/50 rounded-xl flex items-center justify-center overflow-hidden border border-emerald-100/50">
+                  <svg width="100" height="40" viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="opacity-80">
+                    <path
+                      d="M50 20C50 20 62.5 7.5 75 7.5C87.5 7.5 87.5 32.5 75 32.5C62.5 32.5 50 20 50 20ZM50 20C50 20 37.5 7.5 25 7.5C12.5 7.5 12.5 32.5 25 32.5C37.5 32.5 50 20 50 20Z"
+                      stroke="#e2e8f0"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <motion.path
+                      d="M50 20C50 20 62.5 7.5 75 7.5C87.5 7.5 87.5 32.5 75 32.5C62.5 32.5 50 20 50 20ZM50 20C50 20 37.5 7.5 25 7.5C12.5 7.5 12.5 32.5 25 32.5C37.5 32.5 50 20 50 20Z"
+                      stroke="#10b981"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    />
+                    <motion.g
+                      animate={{
+                        offsetDistance: ["0%", "100%"]
+                      }}
+                      transition={{
+                        duration: 3,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      style={{
+                        offsetPath: "path('M50 20C50 20 62.5 7.5 75 7.5C87.5 7.5 87.5 32.5 75 32.5C62.5 32.5 50 20 50 20ZM50 20C50 20 37.5 7.5 25 7.5C12.5 7.5 12.5 32.5 25 32.5C37.5 32.5 50 20 50 20Z')",
+                      }}
+                    >
+                      <rect x="-4" y="-6" width="8" height="12" rx="1.5" fill="#10b981" />
+                      <circle r="1" fill="white" cy="-3" />
+                    </motion.g>
+                  </svg>
+                </div>
+              </div>
             </div>
-            <div className="flex gap-2">
-              <div className="w-5 h-5 rounded-lg bg-slate-50 flex items-center justify-center text-[9px] font-bold text-slate-400">03</div>
-              <p className="text-[10px] text-slate-500 leading-relaxed">Stay away from large metal objects or magnets.</p>
+
+            <div className="flex gap-3 items-center">
+              <div className="w-6 h-6 rounded-xl bg-slate-50 flex items-center justify-center text-[10px] font-black text-slate-400 shrink-0">03</div>
+              <p className="text-[11px] text-slate-500 font-bold leading-tight">Stay away from large metal objects or magnets.</p>
             </div>
           </div>
         </div>
