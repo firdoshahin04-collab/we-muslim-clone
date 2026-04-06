@@ -1,0 +1,5 @@
+{
+  "name": "WeMuslim Clone",
+  "description": "A comprehensive Islamic companion app featuring prayer timings, Quran recitation, Qibla finder, and nearby halal places.",
+  "requestFramePermissions": ["geolocation"]
+}
