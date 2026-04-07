@@ -107,8 +107,7 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const calculateTimes = useCallback(() => {
     if (location) {
       const rawTimes = getPrayerTimes(location.lat, location.lng);
-      const adjustedTimes = {
-        ...rawTimes,
+      const adjustedTimes: any = {
         fajr: addMinutes(rawTimes.fajr, settings.offsets.fajr),
         sunrise: addMinutes(rawTimes.sunrise, settings.offsets.sunrise),
         dhuhr: addMinutes(rawTimes.dhuhr, settings.offsets.dhuhr),
@@ -116,7 +115,35 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         maghrib: addMinutes(rawTimes.maghrib, settings.offsets.maghrib),
         isha: addMinutes(rawTimes.isha, settings.offsets.isha),
       };
-      setTimes(adjustedTimes);
+
+      // Recalculate current and next prayer based on adjusted times
+      const now = new Date();
+      const prayerOrder = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+      let current = 'none';
+      let next = 'fajr';
+      let timeForNext = adjustedTimes.fajr;
+
+      for (let i = 0; i < prayerOrder.length; i++) {
+        const p = prayerOrder[i];
+        if (now >= adjustedTimes[p]) {
+          current = p;
+          if (i < prayerOrder.length - 1) {
+            next = prayerOrder[i + 1];
+            timeForNext = adjustedTimes[next];
+          } else {
+            // After Isha, next is tomorrow's Fajr
+            next = 'fajr';
+            timeForNext = addDays(adjustedTimes.fajr, 1);
+          }
+        }
+      }
+
+      setTimes({
+        ...adjustedTimes,
+        current,
+        next,
+        timeForNext
+      });
     }
   }, [location, settings.offsets]);
 

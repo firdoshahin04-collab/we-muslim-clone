@@ -173,7 +173,13 @@ export default function Home() {
               transition={{ delay: 0.4 }}
               className="text-7xl font-black tracking-tighter drop-shadow-2xl"
             >
-              {times.timeForNext ? format(new Date(times.timeForNext.getTime() - currentTime.getTime() - 3600000 * 5.5), 'HH:mm:ss') : '--:--:--'}
+              {times.timeForNext ? (() => {
+                const diff = times.timeForNext.getTime() - currentTime.getTime();
+                const hours = Math.floor(diff / 3600000);
+                const minutes = Math.floor((diff % 3600000) / 60000);
+                const seconds = Math.floor((diff % 60000) / 1000);
+                return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+              })() : '--:--:--'}
             </motion.h2>
           </div>
 
@@ -390,7 +396,7 @@ export default function Home() {
               <p className={cn(
                 "text-2xl font-black tracking-tighter",
                 currentPrayer.toLowerCase() === prayer.name.toLowerCase() ? "text-emerald-600" : "text-slate-800"
-              )}>{format(prayer.time, 'HH:mm')}</p>
+              )}>{format(prayer.time, 'hh:mm a')}</p>
             </div>
           </motion.div>
         ))}

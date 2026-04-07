@@ -11,6 +11,7 @@ export default function Nearby() {
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'mosque' | 'halal'>('mosque');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -24,20 +25,26 @@ export default function Nearby() {
     );
   }, []);
 
-  const searchNearby = async (type: 'mosque' | 'halal') => {
+  const searchNearby = async (type: 'mosque' | 'halal', customQuery?: string) => {
     if (!location) return;
     setLoading(true);
     setResults([]);
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      const query = type === 'mosque' 
-        ? "Find ONLY mosques (Masjids) near my current location. Do NOT include restaurants, shops, or halal meat stores. Provide a list of mosques. For each mosque, provide its name, address, rating, distance, and whether it's open now. Format each mosque as a single line like this: 'Name | Address | Rating | Distance | OpenNow'. Separate each mosque with a newline. Do not include any other text."
-        : "Find ONLY halal meat shops, halal butchers, and halal restaurants near my current location. Do NOT include mosques or Masjids. Provide a list. For each place, provide its name, address, rating, distance, and whether it's open now. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow'. Separate each place with a newline. Do not include any other text.";
+      let prompt = "";
+      
+      if (customQuery) {
+        prompt = `Find places matching "${customQuery}" near my current location. Provide a list of places. For each place, provide its name, address, rating, distance, and whether it's open now. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow'. Separate each place with a newline. Do not include any other text.`;
+      } else {
+        prompt = type === 'mosque' 
+          ? "Find ONLY mosques (Masjids) near my current location. Provide a list of mosques. For each mosque, provide its name, address, rating, distance, and whether it's open now. Format each mosque as a single line like this: 'Name | Address | Rating | Distance | OpenNow'. Separate each mosque with a newline. Do not include any other text."
+          : "Find ONLY halal meat shops and halal restaurants near my current location. Provide a list. For each place, provide its name, address, rating, distance, and whether it's open now. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow'. Separate each place with a newline. Do not include any other text.";
+      }
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: query,
+        contents: prompt,
         config: {
           tools: [{ googleMaps: {} }],
           toolConfig: {
@@ -86,34 +93,44 @@ export default function Nearby() {
 
   return (
     <div className="p-5 flex flex-col gap-6 h-full bg-[#f8f9fb]">
-      <header className="flex justify-between items-start relative">
-        <div className="relative z-10">
-          <motion.h1 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-black text-slate-800 tracking-tight"
-          >
-            Nearby Services
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-emerald-600 text-[11px] font-black uppercase tracking-[0.2em]"
-          >
-            Discover {activeTab}s around you
-          </motion.p>
-        </div>
-        <div className="flex gap-2">
-          <motion.button
-            whileHover={{ scale: 1.1, rotate: 90 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => searchNearby(activeTab)}
-            className="w-10 h-10 glass rounded-2xl flex items-center justify-center text-emerald-600 shadow-sm"
-          >
-            <Search size={18} strokeWidth={3} />
-          </motion.button>
+      <header className="flex flex-col gap-4 relative">
+        <div className="flex justify-between items-start">
+          <div className="relative z-10">
+            <motion.h1 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl font-black text-slate-800 tracking-tight"
+            >
+              Nearby Services
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-emerald-600 text-[11px] font-black uppercase tracking-[0.2em]"
+            >
+              Discover {activeTab}s around you
+            </motion.p>
+          </div>
           <CrescentStar className="w-10 h-10 text-emerald-600/20 animate-float" />
+        </div>
+
+        <div className="relative z-10">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search mosque or place name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => e.key === 'Enter' && searchNearby(activeTab, searchQuery)}
+            className="w-full bg-white border border-slate-100 rounded-[24px] py-4 pl-12 pr-16 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-sm"
+          />
+          <button 
+            onClick={() => searchNearby(activeTab, searchQuery)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 text-white px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all"
+          >
+            Search
+          </button>
         </div>
       </header>
 
@@ -246,10 +263,16 @@ export default function Nearby() {
                       <motion.button 
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`, '_blank')}
-                        className="w-10 h-10 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                        onClick={() => {
+                          if (location) {
+                            window.open(`https://www.google.com/maps/dir/?api=1&origin=${location.lat},${location.lng}&destination=${encodeURIComponent(place.name + ' ' + place.address)}&travelmode=driving`, '_blank');
+                          } else {
+                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`, '_blank');
+                          }
+                        }}
+                        className="px-6 py-3 bg-emerald-600 text-white rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-200"
                       >
-                        <ChevronRight size={20} strokeWidth={3} />
+                        Navigate <ChevronRight size={16} strokeWidth={3} />
                       </motion.button>
                     </div>
                   </motion.div>

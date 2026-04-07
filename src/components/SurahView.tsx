@@ -55,7 +55,7 @@ export default function SurahView() {
       setLoading(true);
       try {
         const [arabicRes, transRes, urduAudioRes] = await Promise.all([
-          fetch(`https://api.alquran.cloud/v1/surah/${number}/ar.alafasy`),
+          fetch(`https://api.alquran.cloud/v1/surah/${number}/quran-uthmani`),
           fetch(`https://api.alquran.cloud/v1/surah/${number}/ur.jalandhry`),
           fetch(`https://api.alquran.cloud/v1/surah/${number}/ur.khan`) // Reliable Urdu Audio
         ]);
