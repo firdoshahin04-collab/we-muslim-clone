@@ -77,6 +77,20 @@ export default function SurahView() {
 
   const [isReadingTranslation, setIsReadingTranslation] = useState(false);
 
+  useEffect(() => {
+    if (surah && playingAyah) {
+      const ayah = surah.ayahs.find(a => a.number === playingAyah);
+      if (ayah) {
+        localStorage.setItem('lastReadSurah', JSON.stringify({
+          number: surah.number,
+          englishName: surah.englishName,
+          ayahNumber: ayah.numberInSurah,
+          timestamp: Date.now()
+        }));
+      }
+    }
+  }, [surah, playingAyah]);
+
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const playPromiseRef = useRef<Promise<void> | null>(null);
 

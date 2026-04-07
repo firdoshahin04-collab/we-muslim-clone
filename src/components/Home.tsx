@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -27,6 +27,14 @@ export default function Home() {
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastRead, setLastRead] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('lastReadSurah');
+    if (saved) {
+      setLastRead(JSON.parse(saved));
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -341,46 +349,126 @@ export default function Home() {
       <motion.section
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-slate-900 rounded-[48px] p-8 text-white relative overflow-hidden border border-white/5"
+        className="bg-[#0a0f1a] rounded-[48px] p-8 text-white relative overflow-hidden border border-white/5 shadow-2xl group"
       >
-        <div className="absolute inset-0 bg-islamic-pattern opacity-5" />
+        <div className="absolute inset-0 bg-islamic-pattern opacity-[0.03]" />
+        
+        {/* Realistic Ambient Glow */}
+        <div className="absolute inset-0 pointer-events-none">
+          <motion.div 
+            animate={{ 
+              opacity: prayersDone.length === 5 ? [0.1, 0.2, 0.1] : [0.05, 0.1, 0.05],
+              scale: [1, 1.1, 1],
+            }}
+            transition={{ duration: 5, repeat: Infinity }}
+            className={cn(
+              "absolute -right-20 -top-20 w-96 h-96 rounded-full blur-[100px]",
+              prayersDone.length < 3 ? "bg-rose-500/20" : "bg-emerald-500/20"
+            )}
+          />
+        </div>
+
         <div className="relative z-10">
-          <div className="flex items-center gap-2 mb-4">
-            <div className="w-1.5 h-1.5 bg-rose-500 rounded-full animate-pulse" />
-            <h3 className="text-[10px] font-black text-rose-400 uppercase tracking-[0.3em]">Spiritual Warning</h3>
+          <div className="flex items-center gap-2 mb-8">
+            <div className={cn(
+              "w-2 h-2 rounded-full animate-pulse shadow-lg",
+              prayersDone.length < 3 ? "bg-rose-500 shadow-rose-500/50" : "bg-emerald-500 shadow-emerald-500/50"
+            )} />
+            <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em]">Spiritual Pulse</h3>
           </div>
           
-          <div className="flex gap-6 items-start">
+          <div className="flex gap-10 items-center">
             <div className="flex-1">
-              <h4 className="text-lg font-black tracking-tight mb-2">The Weight of a Missed Prayer</h4>
-              <p className="text-xs text-slate-400 leading-relaxed italic mb-4">
-                "Whoever misses the Asr prayer, his good deeds will be lost." — Sahih Bukhari
+              <h4 className="text-2xl font-black tracking-tight mb-4 leading-tight">
+                {prayersDone.length === 5 
+                  ? "Your soul is bathed in divine light." 
+                  : prayersDone.length >= 3 
+                    ? "Nurture the light within you."
+                    : "The shadows are growing longer."}
+              </h4>
+              <p className="text-sm text-slate-400 leading-relaxed italic mb-8 opacity-70 font-medium">
+                {prayersDone.length < 3 
+                  ? "\"The prayer is a light, and charity is a proof, and patience is illumination.\""
+                  : "\"The coolness of my eyes has been provided in prayer.\""}
               </p>
-              <div className="flex items-center gap-2 text-[10px] font-black text-rose-500 uppercase tracking-widest">
-                <Fingerprint size={14} />
-                Don't let your light fade
+              
+              <div className={cn(
+                "inline-flex items-center gap-3 px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] border transition-all duration-700",
+                prayersDone.length < 3 
+                  ? "bg-rose-500/10 border-rose-500/20 text-rose-400 shadow-[0_0_20px_rgba(244,63,94,0.1)]" 
+                  : "bg-emerald-500/10 border-emerald-500/20 text-emerald-400 shadow-[0_0_20px_rgba(52,211,153,0.1)]"
+              )}>
+                <Fingerprint size={16} />
+                {prayersDone.length < 3 ? "Urgent: Reclaim your peace" : "Soul State: Luminous"}
               </div>
             </div>
             
-            <div className="w-24 h-32 bg-white/5 rounded-3xl relative overflow-hidden flex flex-col items-center justify-end pb-4 border border-white/10">
-              {/* Animated Falling Line */}
+            {/* Realistic Lantern/Soul Animation */}
+            <div className="relative w-40 h-40 flex items-center justify-center">
+              {/* Flickering Light Aura */}
               <motion.div 
-                className="absolute top-0 w-1 bg-gradient-to-b from-emerald-400 to-rose-600 rounded-full"
                 animate={{ 
-                  height: prayersDone.length === 5 ? "80%" : `${(prayersDone.length / 5) * 80}%`,
-                  opacity: [0.5, 1, 0.5]
+                  scale: [1, 1.2, 0.9, 1.1, 1],
+                  opacity: prayersDone.length === 5 ? [0.3, 0.6, 0.4, 0.7, 0.3] : [0.1, 0.3, 0.2, 0.4, 0.1],
                 }}
-                transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+                transition={{ duration: 0.5, repeat: Infinity, repeatType: "mirror" }}
+                className={cn(
+                  "absolute w-24 h-24 rounded-full blur-3xl",
+                  prayersDone.length < 3 ? "bg-rose-500" : "bg-emerald-400"
+                )}
               />
-              <motion.div 
-                className="w-4 h-4 bg-emerald-400 rounded-full shadow-[0_0_15px_rgba(52,211,153,1)]"
-                animate={{ 
-                  y: prayersDone.length === 5 ? -80 : -((prayersDone.length / 5) * 80),
-                  backgroundColor: prayersDone.length < 3 ? "#f43f5e" : "#34d399",
-                  boxShadow: prayersDone.length < 3 ? "0 0 15px rgba(244,63,94,1)" : "0 0 15px rgba(52,211,153,1)"
-                }}
-              />
-              <p className="text-[8px] font-black uppercase tracking-tighter mt-2 text-slate-500">Soul State</p>
+
+              {/* Lantern Structure */}
+              <div className="relative z-10 w-20 h-28 flex flex-col items-center">
+                <div className="w-8 h-2 bg-slate-800 rounded-full mb-1" />
+                <div className={cn(
+                  "w-16 h-20 rounded-2xl border-2 relative overflow-hidden flex items-center justify-center transition-colors duration-1000",
+                  prayersDone.length < 3 ? "border-rose-900/50 bg-rose-950/30" : "border-emerald-900/50 bg-emerald-950/30"
+                )}>
+                  {/* Internal Flame */}
+                  <motion.div 
+                    animate={{ 
+                      scale: prayersDone.length === 5 ? [1, 1.1, 0.9, 1] : [0.6, 0.8, 0.5, 0.6],
+                      y: [0, -2, 1, 0],
+                      opacity: prayersDone.length === 0 ? 0.2 : 1
+                    }}
+                    transition={{ duration: 0.2, repeat: Infinity }}
+                    className={cn(
+                      "w-8 h-12 rounded-full blur-sm",
+                      prayersDone.length < 3 ? "bg-gradient-to-t from-rose-600 to-orange-400" : "bg-gradient-to-t from-emerald-500 to-yellow-200"
+                    )}
+                  />
+                  
+                  {/* Glass Reflection */}
+                  <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
+                </div>
+                <div className="w-12 h-3 bg-slate-800 rounded-b-xl mt-1" />
+              </div>
+
+              {/* Rising Smoke/Light Particles */}
+              <div className="absolute inset-0 pointer-events-none">
+                {[...Array(5)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ y: 20, x: 0, opacity: 0, scale: 0 }}
+                    animate={{ 
+                      y: -80, 
+                      x: Math.sin(i) * 30,
+                      opacity: [0, 0.8, 0],
+                      scale: [0, 1.5, 0.5]
+                    }}
+                    transition={{ 
+                      duration: 3 + Math.random() * 2, 
+                      repeat: Infinity, 
+                      delay: i * 0.8 
+                    }}
+                    className={cn(
+                      "absolute bottom-1/4 left-1/2 w-1.5 h-1.5 rounded-full blur-[1px]",
+                      prayersDone.length < 3 ? "bg-rose-400/40" : "bg-emerald-400/40"
+                    )}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
@@ -469,31 +557,70 @@ export default function Home() {
         ))}
       </motion.section>
 
-      {/* Quran Verse Section */}
+      {/* Continue Reading / Verse of the Day Section */}
       <motion.section 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
-        className="bg-white rounded-[48px] p-8 border border-slate-100 shadow-sm relative overflow-hidden"
+        className="bg-white rounded-[48px] p-8 border border-slate-100 shadow-sm relative overflow-hidden group"
       >
-        <div className="absolute top-0 left-0 p-8 opacity-[0.02]">
+        <div className="absolute top-0 left-0 p-8 opacity-[0.02] group-hover:opacity-5 transition-opacity">
           <BookOpen size={120} />
         </div>
-        <div className="flex justify-between items-center mb-6 relative z-10">
-          <div className="flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
-            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em]">Verse of the Day</h3>
+        
+        {lastRead ? (
+          <div className="relative z-10">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em]">Continue Reading</h3>
+              </div>
+              <p className="text-[9px] text-slate-400 font-black uppercase tracking-widest">
+                Last read: {new Date(lastRead.timestamp).toLocaleDateString()}
+              </p>
+            </div>
+            
+            <div className="flex flex-col gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 shadow-inner">
+                  <Book size={24} />
+                </div>
+                <div>
+                  <h4 className="text-xl font-black text-slate-800 tracking-tight">Surah {lastRead.englishName}</h4>
+                  <p className="text-xs text-slate-400 font-bold uppercase tracking-widest">Verse {lastRead.ayahNumber}</p>
+                </div>
+              </div>
+              
+              <motion.button 
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={() => navigate(`/surah/${lastRead.number}`)}
+                className="w-full py-5 bg-emerald-600 text-white rounded-[24px] font-black uppercase tracking-widest text-xs shadow-xl shadow-emerald-200 flex items-center justify-center gap-3 hover:bg-emerald-500 transition-all"
+              >
+                <Play size={16} fill="currentColor" />
+                Resume Reading
+              </motion.button>
+            </div>
           </div>
-          <button onClick={() => navigate('/quran')} className="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:underline">Read More</button>
-        </div>
-        <div className="relative z-10 space-y-4">
-          <p className="text-3xl font-arabic text-emerald-700 text-right leading-relaxed">{dailyVerse.arabic}</p>
-          <div className="flex gap-4">
-            <Quote size={20} className="text-emerald-100 shrink-0" />
-            <p className="text-sm font-medium text-slate-600 leading-relaxed italic">"{dailyVerse.meaning}"</p>
-          </div>
-          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">— Surah {dailyVerse.reference}</p>
-        </div>
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-6 relative z-10">
+              <div className="flex items-center gap-2">
+                <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+                <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em]">Verse of the Day</h3>
+              </div>
+              <button onClick={() => navigate('/quran')} className="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:underline">Read More</button>
+            </div>
+            <div className="relative z-10 space-y-4">
+              <p className="text-3xl font-arabic text-emerald-700 text-right leading-relaxed">{dailyVerse.arabic}</p>
+              <div className="flex gap-4">
+                <Quote size={20} className="text-emerald-100 shrink-0" />
+                <p className="text-sm font-medium text-slate-600 leading-relaxed italic">"{dailyVerse.meaning}"</p>
+              </div>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">— Surah {dailyVerse.reference}</p>
+            </div>
+          </>
+        )}
       </motion.section>
 
       {/* Dua of the Day */}
