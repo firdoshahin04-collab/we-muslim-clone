@@ -1,11 +1,26 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { RubElHizb, CrescentStar, IslamicPattern } from './DecorativeIcons';
+
+const DAILY_VERSES = [
+  { arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", meaning: "For indeed, with hardship [will be] ease.", reference: "94:5" },
+  { arabic: "وَقُل رَّبِّ زِدْنِي عِلْمًا", meaning: "And say, 'My Lord, increase me in knowledge.'", reference: "20:114" },
+  { arabic: "إِنَّ اللَّهَ مَعَ الصَّابِرِينَ", meaning: "Indeed, Allah is with the patient.", reference: "2:153" },
+  { arabic: "وَاسْتَعِينُوا بِالصَّبْرِ وَالصَّلَاةِ", meaning: "And seek help through patience and prayer.", reference: "2:45" },
+  { arabic: "نَبِّئْ عِبَادِي أَنِّي أَنَا الْغَفُورُ الرَّحِيمُ", meaning: "Inform My servants that it is I who am the Forgiving, the Merciful.", reference: "15:49" }
+];
+
+const DAILY_DUAS = [
+  { title: "Dua for Protection", arabic: "بِسْمِ اللَّهِ الَّذِي لَا يَضُرُّ مَعَ اسْمِهِ شَيْءٌ فِي الْأَرْضِ وَلَا فِي السَّمَاءِ وَهُوَ السَّمِيعُ الْعَلِيمُ", meaning: "In the Name of Allah with Whose Name there is protection against every kind of harm..." },
+  { title: "Dua for Forgiveness", arabic: "رَبَّنَا اغْفِرْ لَنَا ذُنُوبَنَا وَإِسْرَافَنَا فِي أَمْرِنَا", meaning: "Our Lord! Forgive us our sins and our transgressions..." },
+  { title: "Dua for Knowledge", arabic: "رَّبِّ زِدْنِي عِلْمًا", meaning: "My Lord, increase me in knowledge." },
+  { title: "Dua for Parents", arabic: "رَّبِّ ارْحَمْهُمَا كَمَا رَبَّيَانِي صَغِيرًا", meaning: "My Lord, have mercy upon them as they brought me up..." }
+];
 
 export default function Home() {
   const { times, location } = usePrayer();
@@ -16,6 +31,23 @@ export default function Home() {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const dailyVerse = useMemo(() => {
+    const day = new Date().getDate();
+    return DAILY_VERSES[day % DAILY_VERSES.length];
+  }, []);
+
+  const duaOfTheDay = useMemo(() => {
+    const day = new Date().getDate();
+    return DAILY_DUAS[day % DAILY_DUAS.length];
+  }, []);
+
+  // Spiritual Progress State (Mock for now, could be persisted)
+  const [prayersDone, setPrayersDone] = useState<string[]>([]);
+
+  const hijriDate = useMemo(() => {
+    return new Intl.DateTimeFormat('en-u-ca-islamic-uma', { day: 'numeric', month: 'long', year: 'numeric' }).format(currentTime);
+  }, [currentTime]);
 
   if (!times) return (
     <div className="flex flex-col items-center justify-center h-screen gap-4">
@@ -35,8 +67,12 @@ export default function Home() {
 
   const currentPrayer = times.current === 'none' ? 'Isha' : times.current;
 
+  const togglePrayer = (name: string) => {
+    setPrayersDone(prev => prev.includes(name) ? prev.filter(p => p !== name) : [...prev, name]);
+  };
+
   return (
-    <div className="flex flex-col gap-6 p-6 bg-[#f8f9fb] min-h-full pb-24">
+    <div className="flex flex-col gap-6 p-6 bg-[#fcfcfd] min-h-full pb-24">
       <header className="flex justify-between items-center mb-2 relative">
         <div className="flex flex-col gap-0.5">
           <div className="flex items-center gap-2">
@@ -60,101 +96,131 @@ export default function Home() {
             </p>
             <div className="w-1 h-1 bg-slate-300 rounded-full" />
             <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em]">
-              {format(currentTime, 'yyyy')}
+              {hijriDate}
             </p>
           </motion.div>
         </div>
-        <motion.button 
-          whileHover={{ scale: 1.05, rotate: 5 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => navigate('/settings')}
-          className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
-        >
-          <SettingsIcon size={22} strokeWidth={2.5} />
-        </motion.button>
+        <div className="flex gap-2">
+          <motion.button 
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => {
+              if (navigator.share) {
+                navigator.share({
+                  title: 'Islamic Hub',
+                  text: 'Check out this amazing Islamic app!',
+                  url: window.location.href,
+                });
+              }
+            }}
+            className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
+          >
+            <Share2 size={20} strokeWidth={2.5} />
+          </motion.button>
+          <motion.button 
+            whileHover={{ scale: 1.05, rotate: 5 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => navigate('/settings')}
+            className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
+          >
+            <SettingsIcon size={22} strokeWidth={2.5} />
+          </motion.button>
+        </div>
       </header>
 
+      {/* Hero Prayer Card */}
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ type: "spring", stiffness: 100, damping: 20 }}
-        whileHover={{ scale: 1.01 }}
-        className="relative overflow-hidden rounded-[48px] bg-emerald-600 p-9 text-white shadow-2xl shadow-emerald-900/20 group"
+        className="relative overflow-hidden rounded-[48px] bg-slate-900 p-9 text-white shadow-2xl shadow-slate-200 group"
       >
-        {/* Pattern Overlay */}
         <motion.div 
           animate={{ backgroundPosition: ["0% 0%", "100% 100%"] }}
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 bg-islamic-pattern opacity-20" 
+          className="absolute inset-0 bg-islamic-pattern opacity-10" 
         />
         
         <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 }}
-              className="bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-md border border-white/10 flex items-center gap-2"
-            >
-              <motion.div 
-                animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
-                transition={{ repeat: Infinity, duration: 2 }}
-                className="w-2 h-2 bg-emerald-300 rounded-full shadow-[0_0_10px_rgba(110,231,183,1)]" 
-              />
+          <div className="flex items-center justify-between mb-8">
+            <div className="bg-emerald-500/20 px-4 py-2 rounded-2xl backdrop-blur-md border border-white/10 flex items-center gap-2">
+              <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse shadow-[0_0_10px_rgba(52,211,153,1)]" />
               <p className="text-white font-black uppercase tracking-[0.2em] text-[10px]">Next: {times.next}</p>
-            </motion.div>
+            </div>
+            <CrescentStar className="w-8 h-8 text-emerald-400/50 animate-float" />
           </div>
           
           <div className="flex flex-col gap-1 mb-8">
+            <p className="text-emerald-400 text-[10px] font-black uppercase tracking-[0.4em] mb-2">Time Remaining</p>
             <motion.h2 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4 }}
               className="text-7xl font-black tracking-tighter drop-shadow-2xl"
             >
-              {times.timeForNext ? format(times.timeForNext, 'HH:mm') : '--:--'}
+              {times.timeForNext ? format(new Date(times.timeForNext.getTime() - currentTime.getTime() - 3600000 * 5.5), 'HH:mm:ss') : '--:--:--'}
             </motion.h2>
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="flex items-center gap-2 text-emerald-100/70 font-black text-xs uppercase tracking-widest"
-            >
-              <Clock size={14} strokeWidth={2.5} />
-              <span>Time Remaining: {times.timeForNext ? format(new Date(times.timeForNext.getTime() - currentTime.getTime()), 'H:mm:ss') : '--:--:--'}</span>
-            </motion.div>
           </div>
 
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
-            className="flex items-center justify-between pt-6 border-t border-white/10"
-          >
+          <div className="flex items-center justify-between pt-6 border-t border-white/5">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10">
-                <MapPin size={18} className="text-emerald-200" />
+              <div className="w-10 h-10 bg-white/5 rounded-2xl flex items-center justify-center backdrop-blur-md border border-white/10">
+                <Clock size={18} className="text-emerald-400" />
               </div>
               <div className="flex flex-col">
-                <p className="text-[10px] font-black uppercase tracking-widest text-emerald-200/60">Current Location</p>
-                <p className="text-xs font-black tracking-tight">{location?.lat.toFixed(2)}°N, {location?.lng.toFixed(2)}°E</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Next Adhan</p>
+                <p className="text-sm font-black tracking-tight">{times.timeForNext ? format(times.timeForNext, 'hh:mm a') : '--:--'}</p>
               </div>
             </div>
-          </motion.div>
+            <div className="text-right">
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current</p>
+              <p className="text-sm font-black tracking-tight text-emerald-400">{currentPrayer}</p>
+            </div>
+          </div>
         </div>
-        
-        {/* Decorative background blobs */}
-        <motion.div 
-          animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
-          transition={{ duration: 8, repeat: Infinity }}
-          className="absolute -right-20 -top-20 w-64 h-64 bg-emerald-400/30 rounded-full blur-[80px]" 
-        />
-        <motion.div 
-          animate={{ scale: [1.2, 1, 1.2], rotate: [0, -90, 0] }}
-          transition={{ duration: 10, repeat: Infinity }}
-          className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-900/40 rounded-full blur-[80px]" 
-        />
       </motion.div>
+
+      {/* Spiritual Progress Tracker */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        className="bg-white rounded-[48px] p-8 border border-slate-100 shadow-sm relative overflow-hidden"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
+            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em]">Daily Progress</h3>
+          </div>
+          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{prayersDone.length}/5 Prayers</p>
+        </div>
+
+        <div className="flex justify-between gap-2">
+          {['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'].map((p) => (
+            <button 
+              key={p}
+              onClick={() => togglePrayer(p)}
+              className={cn(
+                "flex-1 aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border",
+                prayersDone.includes(p) 
+                  ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-100" 
+                  : "bg-slate-50 border-slate-100 text-slate-400 hover:border-emerald-200"
+              )}
+            >
+              <p className="text-[8px] font-black uppercase tracking-tighter">{p}</p>
+              {prayersDone.includes(p) ? <Check size={14} strokeWidth={3} /> : <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" />}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-6 h-2 bg-slate-50 rounded-full overflow-hidden">
+          <motion.div 
+            className="h-full bg-emerald-500 rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${(prayersDone.length / 5) * 100}%` }}
+          />
+        </div>
+      </motion.section>
 
       {/* Quick Actions */}
       <div className="grid grid-cols-2 gap-4">
@@ -162,12 +228,15 @@ export default function Home() {
           whileHover={{ y: -4, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/duas')}
-          className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group"
+          className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group relative overflow-hidden"
         >
-          <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all">
+          <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+            <Heart size={80} />
+          </div>
+          <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all shadow-inner">
             <Heart size={24} fill="currentColor" />
           </div>
-          <div className="text-left">
+          <div className="text-left relative z-10">
             <p className="font-black text-slate-800 tracking-tight">Daily Duas</p>
             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Supplications</p>
           </div>
@@ -177,17 +246,73 @@ export default function Home() {
           whileHover={{ y: -4, scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={() => navigate('/tasbih')}
-          className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group"
+          className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group relative overflow-hidden"
         >
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all">
+          <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+            <Fingerprint size={80} />
+          </div>
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
             <Fingerprint size={24} />
           </div>
-          <div className="text-left">
+          <div className="text-left relative z-10">
             <p className="font-black text-slate-800 tracking-tight">Tasbih</p>
             <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Dhikr Counter</p>
           </div>
         </motion.button>
       </div>
+
+      {/* Quran Verse Section */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4 }}
+        className="bg-white rounded-[48px] p-8 border border-slate-100 shadow-sm relative overflow-hidden"
+      >
+        <div className="absolute top-0 left-0 p-8 opacity-[0.02]">
+          <BookOpen size={120} />
+        </div>
+        <div className="flex justify-between items-center mb-6 relative z-10">
+          <div className="flex items-center gap-2">
+            <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
+            <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em]">Verse of the Day</h3>
+          </div>
+          <button onClick={() => navigate('/quran')} className="text-[10px] font-black text-emerald-600 uppercase tracking-widest hover:underline">Read More</button>
+        </div>
+        <div className="relative z-10 space-y-4">
+          <p className="text-3xl font-arabic text-emerald-700 text-right leading-relaxed">{dailyVerse.arabic}</p>
+          <div className="flex gap-4">
+            <Quote size={20} className="text-emerald-100 shrink-0" />
+            <p className="text-sm font-medium text-slate-600 leading-relaxed italic">"{dailyVerse.meaning}"</p>
+          </div>
+          <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest text-right">— Surah {dailyVerse.reference}</p>
+        </div>
+      </motion.section>
+
+      {/* Dua of the Day */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="bg-emerald-900 rounded-[48px] p-8 text-white relative overflow-hidden shadow-2xl shadow-emerald-900/40"
+      >
+        <div className="absolute inset-0 bg-islamic-pattern opacity-10" />
+        <div className="relative z-10">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-2">
+              <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+              <h3 className="text-[11px] font-black text-emerald-200 uppercase tracking-[0.3em]">Featured Dua</h3>
+            </div>
+            <button onClick={() => navigate('/duas')} className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center hover:bg-white/20 transition-all">
+              <ChevronRight size={18} />
+            </button>
+          </div>
+          <div className="space-y-4">
+            <h4 className="text-xl font-black tracking-tight">{duaOfTheDay.title}</h4>
+            <p className="text-2xl font-arabic text-emerald-300 text-right leading-relaxed">{duaOfTheDay.arabic}</p>
+            <p className="text-xs text-emerald-100/70 font-medium leading-relaxed italic line-clamp-2">"{duaOfTheDay.meaning}"</p>
+          </div>
+        </div>
+      </motion.section>
 
       <motion.section 
         initial="hidden"
