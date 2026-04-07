@@ -219,12 +219,12 @@ export default function Nearby() {
                       )}
                     </div>
 
-                    <p className="text-xs text-slate-500 mb-6 flex items-start gap-2.5 leading-relaxed relative z-10">
+                    <div className="text-xs text-slate-500 mb-6 flex items-start gap-2.5 leading-relaxed relative z-10">
                       <div className="w-6 h-6 bg-slate-50 rounded-lg flex items-center justify-center shrink-0 group-hover:bg-emerald-50 transition-colors">
                         <MapPin size={14} className="text-slate-300 group-hover:text-emerald-500 transition-colors" />
                       </div>
                       {place.address}
-                    </p>
+                    </div>
 
                     <div className="flex items-center justify-between mt-4 pt-5 border-t border-slate-50 relative z-10">
                       <div className="flex items-center gap-6">
