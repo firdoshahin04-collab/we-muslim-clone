@@ -30,6 +30,7 @@ export default function ParaMeanings() {
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const [verses, setVerses] = useState<any[]>([]);
   const [translationVerses, setTranslationVerses] = useState<any[]>([]);
+  const [urduAudioVerses, setUrduAudioVerses] = useState<any[]>([]);
   const [isReadingTranslation, setIsReadingTranslation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
@@ -54,14 +55,18 @@ export default function ParaMeanings() {
   const fetchParaVerses = async (juzNumber: number) => {
     setLoading(true);
     try {
-      const [arabicRes, urduRes] = await Promise.all([
+      const [arabicRes, urduRes, urduAudioRes] = await Promise.all([
         fetch(`https://api.alquran.cloud/v1/juz/${juzNumber}/ar.alafasy`),
-        fetch(`https://api.alquran.cloud/v1/juz/${juzNumber}/ur.jalandhry`)
+        fetch(`https://api.alquran.cloud/v1/juz/${juzNumber}/ur.jalandhry`),
+        fetch(`https://api.alquran.cloud/v1/juz/${juzNumber}/ur.khan`)
       ]);
       const arabicData = await arabicRes.json();
       const urduData = await urduRes.json();
+      const urduAudioData = await urduAudioRes.json();
+      
       setVerses(arabicData.data.ayahs);
       setTranslationVerses(urduData.data.ayahs);
+      setUrduAudioVerses(urduAudioData.data.ayahs);
       setCurrentVerseIndex(0);
       setIsReadingTranslation(false);
     } catch (error) {
@@ -74,14 +79,18 @@ export default function ParaMeanings() {
   const fetchSurahVerses = async (surahNumber: number) => {
     setLoading(true);
     try {
-      const [arabicRes, urduRes] = await Promise.all([
+      const [arabicRes, urduRes, urduAudioRes] = await Promise.all([
         fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ar.alafasy`),
-        fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ur.jalandhry`)
+        fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ur.jalandhry`),
+        fetch(`https://api.alquran.cloud/v1/surah/${surahNumber}/ur.khan`)
       ]);
       const arabicData = await arabicRes.json();
       const urduData = await urduRes.json();
+      const urduAudioData = await urduAudioRes.json();
+      
       setVerses(arabicData.data.ayahs);
       setTranslationVerses(urduData.data.ayahs);
+      setUrduAudioVerses(urduAudioData.data.ayahs);
       setCurrentVerseIndex(0);
       setIsReadingTranslation(false);
     } catch (error) {
@@ -108,11 +117,12 @@ export default function ParaMeanings() {
     
     const verse = verses[verseIndex];
     const transVerse = translationVerses[verseIndex];
+    const urduAudioVerse = urduAudioVerses[verseIndex];
     let url = "";
     
     if (isTranslation) {
-      // Use the audio URL from the API if available, otherwise fallback to everyayah
-      url = transVerse?.audio || "";
+      // Try ur.khan first, then transVerse.audio, then everyayah
+      url = urduAudioVerse?.audio || transVerse?.audio || "";
       if (!url) {
         let sNum = 1;
         if (selectedPara?.type === 'surah') {
@@ -136,45 +146,10 @@ export default function ParaMeanings() {
     if (audioRef.current) {
       audioRef.current.pause();
       audioRef.current.onended = null;
+      audioRef.current.onerror = null;
     }
 
-    if (!url) {
-      console.error("No audio URL found for", isTranslation ? "Urdu" : "Arabic");
-      handleNext();
-      return;
-    }
-
-    const audio = new Audio(url);
-    audioRef.current = audio;
-    setIsPlaying(true);
-    setIsReadingTranslation(isTranslation);
-    
-    audio.play().catch(err => {
-      console.error(`Audio play failed (${isTranslation ? 'Urdu' : 'Arabic'}):`, err, "URL:", url);
-      // If Urdu fails, try to move to next Arabic verse
-      if (isTranslation) {
-        if (verseIndex < verses.length - 1) {
-          setCurrentVerseIndex(verseIndex + 1);
-          playAudio(verseIndex + 1, false);
-        } else {
-          setIsPlaying(false);
-        }
-      } else {
-        // If Arabic fails, try Urdu for same verse
-        playAudio(verseIndex, true);
-      }
-    });
-
-    // Pre-load next audio
-    if (!isTranslation) {
-      const nextUrl = translationVerses[verseIndex]?.audio;
-      if (nextUrl) {
-        const preloader = new Audio(nextUrl.replace('http:', 'https:'));
-        preloader.preload = "auto";
-      }
-    }
-
-    audio.onended = () => {
+    const handleNextStep = () => {
       if (!isTranslation) {
         // Play Urdu after Arabic for the same verse
         playAudio(verseIndex, true);
@@ -187,6 +162,45 @@ export default function ParaMeanings() {
           setIsPlaying(false);
         }
       }
+    };
+
+    const handleFallback = () => {
+      if (isTranslation && transVerse?.text) {
+        console.log("Urdu audio failed, using TTS fallback...");
+        const utterance = new SpeechSynthesisUtterance(transVerse.text);
+        utterance.lang = 'ur-PK';
+        utterance.onstart = () => setIsPlaying(true);
+        utterance.onend = () => {
+          handleNextStep();
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        handleNextStep();
+      }
+    };
+
+    if (!url) {
+      handleFallback();
+      return;
+    }
+
+    const audio = new Audio(url);
+    audioRef.current = audio;
+    setIsPlaying(true);
+    setIsReadingTranslation(isTranslation);
+    
+    audio.play().catch(err => {
+      console.error(`Audio play failed (${isTranslation ? 'Urdu' : 'Arabic'}):`, err, "URL:", url);
+      handleFallback();
+    });
+
+    audio.onerror = () => {
+      console.error(`Audio load failed (${isTranslation ? 'Urdu' : 'Arabic'}):`, url);
+      handleFallback();
+    };
+
+    audio.onended = () => {
+      handleNextStep();
     };
   };
 
