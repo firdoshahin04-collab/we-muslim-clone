@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronLeft, Play, Pause, Volume2 } from 'lucide-react';
+import { ChevronLeft, Play, Pause, Volume2, Share2, Bookmark } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { RubElHizb, IslamicPattern } from './DecorativeIcons';
 
 interface Ayah {
   number: number;
@@ -102,17 +103,10 @@ export default function SurahView() {
       }
     }
 
-    const surahNum = String(surah.number).padStart(3, '0');
-    const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
+    // Use Islamic Network CDN - very reliable
+    // Global ayah number is used for this CDN
+    const urduAudioUrl = `https://cdn.islamic.network/quran/audio/128/ur.khan/${ayah.number}.mp3`;
     
-    // Try to get audio from ur.khan edition first, then fallback to everyayah, then TTS
-    let urduAudioUrl = urduAudioData?.ayahs[ayahIndex]?.audio || 
-                      transAyah.audio || 
-                      `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
-    
-    // Ensure https
-    if (urduAudioUrl.startsWith('http:')) urduAudioUrl = urduAudioUrl.replace('http:', 'https:');
-
     const urduAudio = new Audio(urduAudioUrl);
     urduAudio.volume = volume;
     audioRef.current = urduAudio;
@@ -122,26 +116,47 @@ export default function SurahView() {
     
     const handleFallback = () => {
       console.log("Urdu audio failed, using TTS fallback...");
-      const utterance = new SpeechSynthesisUtterance(transAyah.text);
-      utterance.lang = 'ur-PK';
-      utterance.volume = volume;
-      utterance.onstart = () => setIsPlaying(true);
-      utterance.onend = () => {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(transAyah.text);
+        utterance.lang = 'ur-PK';
+        utterance.volume = volume;
+        utterance.onstart = () => setIsPlaying(true);
+        utterance.onend = () => {
+          setPlayingAyah(null);
+          setIsReadingTranslation(false);
+          setIsPlaying(false);
+        };
+        utterance.onerror = () => {
+          setPlayingAyah(null);
+          setIsReadingTranslation(false);
+          setIsPlaying(false);
+        };
+        window.speechSynthesis.speak(utterance);
+      } else {
         setPlayingAyah(null);
         setIsReadingTranslation(false);
         setIsPlaying(false);
-      };
-      window.speechSynthesis.speak(utterance);
+      }
     };
 
     urduAudio.play().catch(err => {
       console.error("Urdu audio play failed:", err);
-      handleFallback();
+      // Try alternative source if primary fails
+      const surahNum = String(surah.number).padStart(3, '0');
+      const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
+      const fallbackUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
+      
+      const fallbackAudio = new Audio(fallbackUrl);
+      fallbackAudio.volume = volume;
+      audioRef.current = fallbackAudio;
+      fallbackAudio.play().catch(() => handleFallback());
     });
 
     urduAudio.onerror = () => {
       console.error("Urdu audio load failed");
-      handleFallback();
+      // Fallback is already handled by the play().catch() for most cases, 
+      // but we can trigger it here if play() didn't catch it
     };
 
     urduAudio.onended = () => {
@@ -169,31 +184,27 @@ export default function SurahView() {
       }
     }
 
-    // Play Arabic first
-    const arabicAudio = new Audio(ayah.audio);
+    // Play Arabic first - using CDN for reliability
+    const arabicAudioUrl = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayah.number}.mp3`;
+    const arabicAudio = new Audio(arabicAudioUrl);
     arabicAudio.volume = volume;
     audioRef.current = arabicAudio;
     setPlayingAyah(ayah.number);
     setIsReadingTranslation(false);
     setIsPlaying(true);
     
-    arabicAudio.play().catch(err => console.error("Arabic audio play failed:", err));
+    arabicAudio.play().catch(err => {
+      console.error("Arabic audio play failed:", err);
+      // If Arabic fails, try to skip to Urdu
+      arabicAudio.onended?.(new Event('ended'));
+    });
 
     arabicAudio.onpause = () => setIsPlaying(false);
     arabicAudio.onplay = () => setIsPlaying(true);
 
     arabicAudio.onended = () => {
-      // After Arabic, play Jalandhari Urdu Audio immediately
-      const surahNum = String(surah.number).padStart(3, '0');
-      const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
-      
-      // Try to get audio from ur.khan edition first, then fallback to everyayah, then TTS
-      let urduAudioUrl = urduAudioData?.ayahs[ayahIndex]?.audio || 
-                        transAyah.audio || 
-                        `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
-      
-      // Ensure https
-      if (urduAudioUrl.startsWith('http:')) urduAudioUrl = urduAudioUrl.replace('http:', 'https:');
+      // After Arabic, play Urdu
+      const urduAudioUrl = `https://cdn.islamic.network/quran/audio/128/ur.khan/${ayah.number}.mp3`;
       
       const urduAudio = new Audio(urduAudioUrl);
       urduAudio.volume = volume;
@@ -203,27 +214,36 @@ export default function SurahView() {
       
       const handleFallback = () => {
         console.log("Urdu audio failed, using TTS fallback...");
-        const utterance = new SpeechSynthesisUtterance(transAyah.text);
-        utterance.lang = 'ur-PK';
-        utterance.volume = volume;
-        utterance.onstart = () => setIsPlaying(true);
-        utterance.onend = () => {
+        if ('speechSynthesis' in window) {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(transAyah.text);
+          utterance.lang = 'ur-PK';
+          utterance.volume = volume;
+          utterance.onstart = () => setIsPlaying(true);
+          utterance.onend = () => {
+            setPlayingAyah(null);
+            setIsReadingTranslation(false);
+            setIsPlaying(false);
+          };
+          window.speechSynthesis.speak(utterance);
+        } else {
           setPlayingAyah(null);
           setIsReadingTranslation(false);
           setIsPlaying(false);
-        };
-        window.speechSynthesis.speak(utterance);
+        }
       };
 
       urduAudio.play().catch(err => {
         console.error("Urdu audio play failed:", err);
-        handleFallback();
+        const surahNum = String(surah.number).padStart(3, '0');
+        const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
+        const fallbackUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
+        
+        const fallbackAudio = new Audio(fallbackUrl);
+        fallbackAudio.volume = volume;
+        audioRef.current = fallbackAudio;
+        fallbackAudio.play().catch(() => handleFallback());
       });
-
-      urduAudio.onerror = () => {
-        console.error("Urdu audio load failed");
-        handleFallback();
-      };
 
       urduAudio.onended = () => {
         setPlayingAyah(null);
@@ -264,7 +284,8 @@ export default function SurahView() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfcfd] pb-24">
-      <header className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-slate-100 p-5 flex items-center gap-4 z-50 shadow-sm">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 p-6 z-50 shadow-sm overflow-hidden">
+        <IslamicPattern className="opacity-[0.03]" />
         <motion.div 
           className="absolute bottom-0 left-0 h-1 bg-emerald-500 z-50"
           style={{ width: `${scrollProgress}%` }}
@@ -272,38 +293,38 @@ export default function SurahView() {
           animate={{ width: `${scrollProgress}%` }}
           transition={{ type: "spring", bounce: 0, duration: 0.1 }}
         />
-        <motion.button 
-          whileHover={{ scale: 1.1 }}
-          whileTap={{ scale: 0.9 }}
-          onClick={() => navigate(-1)} 
-          className="p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-2xl transition-all"
-        >
-          <ChevronLeft size={22} />
-        </motion.button>
-        <div className="flex-1">
-          <motion.h1 
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="font-black text-slate-800 tracking-tight text-lg"
-          >
-            {surah.englishName}
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em]"
-          >
-            {surah.revelationType} • {surah.numberOfAyahs} Verses
-          </motion.p>
+        <div className="flex items-center justify-between mb-6 relative z-10">
+          <div className="flex items-center gap-4">
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate(-1)} 
+              className="p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-2xl transition-all"
+            >
+              <ChevronLeft size={22} />
+            </motion.button>
+            <div>
+              <motion.h1 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="font-black text-slate-800 tracking-tight text-lg leading-none mb-1"
+              >
+                {surah.englishName}
+              </motion.h1>
+              <motion.p 
+                initial={{ opacity: 0, x: -10 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: 0.1 }}
+                className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em]"
+              >
+                {surah.revelationType} • {surah.numberOfAyahs} Verses
+              </motion.p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="text-3xl font-arabic text-emerald-700 leading-none font-bold">{surah.name}</p>
+          </div>
         </div>
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-right"
-        >
-          <p className="text-3xl font-arabic text-emerald-700 leading-none font-bold">{surah.name}</p>
-        </motion.div>
       </header>
 
       <div className="p-6 flex flex-col gap-12">
@@ -347,8 +368,11 @@ export default function SurahView() {
               )}
               
               <div className="flex justify-between items-center relative z-10">
-                <div className="w-14 h-14 rounded-[22px] bg-emerald-50 text-emerald-700 flex items-center justify-center text-sm font-black shadow-inner">
-                  {ayah.numberInSurah}
+                <div className="relative">
+                  <RubElHizb className="w-14 h-14 text-emerald-100 absolute inset-0 -rotate-12" />
+                  <div className="w-14 h-14 rounded-[22px] bg-emerald-50 text-emerald-700 flex items-center justify-center text-sm font-black shadow-inner relative z-10">
+                    {ayah.numberInSurah}
+                  </div>
                 </div>
                 <div className="flex gap-3">
                   <motion.button 

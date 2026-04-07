@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Book, Search, Play, ChevronRight } from 'lucide-react';
+import { Book, Search, Play, ChevronRight, Sparkles, ChevronLeft } from 'lucide-react';
 import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { RubElHizb, IslamicPattern } from './DecorativeIcons';
 
 interface Surah {
@@ -14,6 +14,7 @@ interface Surah {
 }
 
 export default function Quran() {
+  const navigate = useNavigate();
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -33,123 +34,101 @@ export default function Quran() {
   );
 
   return (
-    <div className="p-5 flex flex-col gap-6 bg-[#f8f9fb] min-h-full pb-24">
-      <header className="relative overflow-hidden rounded-[32px] p-8 bg-slate-900 text-white shadow-2xl shadow-slate-200 group">
-        <motion.div 
-          animate={{ 
-            backgroundPosition: ["0% 0%", "100% 100%"],
-            scale: [1.5, 1.6, 1.5]
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute inset-0 bg-islamic-pattern opacity-10" 
-        />
-        <div className="relative z-10 flex items-center justify-between w-full">
-          <div>
-            <motion.h1 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-3xl font-black tracking-tight mb-2"
+    <div className="flex flex-col min-h-screen bg-[#fcfcfd] pb-24">
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 p-6 z-50 shadow-sm overflow-hidden">
+        <IslamicPattern className="opacity-[0.03]" />
+        <div className="flex items-center justify-between mb-6 relative z-10">
+          <div className="flex items-center gap-4">
+            <motion.button 
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onClick={() => navigate(-1)} 
+              className="p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-2xl transition-all"
             >
-              The Holy Quran
-            </motion.h1>
-            <motion.p 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.1 }}
-              className="text-emerald-400 text-[11px] font-bold uppercase tracking-[0.2em]"
-            >
-              Read and listen to the divine words
-            </motion.p>
+              <ChevronLeft size={22} />
+            </motion.button>
+            <h1 className="text-xl font-black text-slate-800 tracking-tight">The Holy Quran</h1>
           </div>
-          <RubElHizb className="w-12 h-12 text-emerald-500/50 animate-float" />
+          <RubElHizb className="w-8 h-8 text-emerald-600/20 animate-spin-slow" />
         </div>
-        <motion.div 
-          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
-          transition={{ duration: 5, repeat: Infinity }}
-          className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500 rounded-full blur-3xl" 
-        />
+        
+        <div className="relative z-10">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+          <input 
+            type="text" 
+            placeholder="Search surah name or number..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="w-full bg-slate-50/50 border border-slate-100 rounded-[20px] py-3.5 pl-12 pr-4 text-sm focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all font-medium"
+          />
+        </div>
       </header>
 
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="relative group"
-      >
-        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
-        <input 
-          type="text" 
-          placeholder="Search Surah by name or number..." 
-          className="w-full bg-white border border-slate-100 rounded-[24px] py-4.5 pl-14 pr-6 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 transition-all shadow-sm shadow-slate-200/50"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </motion.div>
-
-      <motion.div 
-        initial="hidden"
-        animate="visible"
-        variants={{
-          visible: {
-            transition: {
-              staggerChildren: 0.05
-            }
-          }
-        }}
-        className="grid grid-cols-1 gap-4"
-      >
-        {loading ? (
-          Array(10).fill(0).map((_, i) => (
-            <div key={i} className="h-24 bg-white border border-slate-100 rounded-[32px] animate-pulse" />
-          ))
-        ) : (
-          filteredSurahs.map((surah) => (
-            <Link 
-              key={surah.number}
-              to={`/quran/${surah.number}`}
-            >
-              <motion.div 
-                variants={{
-                  hidden: { opacity: 0, y: 20 },
-                  visible: { opacity: 1, y: 0 }
-                }}
-                whileHover={{ y: -4, scale: 1.01 }}
-                whileTap={{ scale: 0.98 }}
-                className="bg-white p-5 rounded-[32px] border border-slate-100 flex justify-between items-center shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all cursor-pointer group relative overflow-hidden"
+      <div className="p-6 space-y-8">
+        {!search && (
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-slate-900 rounded-[48px] p-10 text-white relative overflow-hidden shadow-2xl shadow-slate-200 group"
+          >
+            <div className="absolute inset-0 bg-islamic-pattern opacity-10 scale-150 group-hover:scale-125 transition-transform duration-[10s]" />
+            <div className="relative z-10 flex flex-col gap-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
+                  <Sparkles size={18} className="text-emerald-400" />
+                </div>
+                <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.4em]">Surah of the Day</p>
+              </div>
+              <div>
+                <h2 className="text-4xl font-black tracking-tighter mb-1">Al-Kahf</h2>
+                <p className="text-emerald-100/60 text-xs font-bold uppercase tracking-widest">The Cave • 110 Verses</p>
+              </div>
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => navigate('/surah/18')}
+                className="w-full py-5 bg-emerald-600 rounded-[24px] text-center font-black uppercase tracking-widest text-sm hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-900/20"
               >
-                <div className="absolute inset-0 bg-emerald-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <div className="flex items-center gap-5 relative z-10">
-                  <motion.div 
-                    whileHover={{ rotate: 360 }}
-                    transition={{ duration: 0.8 }}
-                    className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-[20px] flex items-center justify-center font-black text-sm shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-500"
-                  >
-                    {surah.number}
-                  </motion.div>
-                  <div>
-                    <h3 className="font-black text-base text-slate-800 group-hover:text-emerald-700 transition-colors tracking-tight">{surah.englishName}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">{surah.revelationType}</span>
-                      <span className="w-1 h-1 rounded-full bg-slate-200" />
-                      <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-widest">{surah.numberOfAyahs} Ayahs</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-4 relative z-10">
-                  <div className="text-right">
-                    <p className="text-2xl font-arabic text-slate-800 font-bold group-hover:text-emerald-700 transition-colors">{surah.name}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-all duration-500">
-                    <ChevronRight size={20} className="text-slate-300 group-hover:text-emerald-600 group-hover:translate-x-0.5 transition-all" />
-                  </div>
-                </div>
-              </motion.div>
-            </Link>
-          ))
+                Continue Reading
+              </motion.button>
+            </div>
+            <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-600/20 rounded-full blur-[100px]" />
+          </motion.div>
         )}
-      </motion.div>
+
+        <div className="grid grid-cols-1 gap-4">
+          {filteredSurahs.map((surah) => (
+            <motion.button
+              key={surah.number}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              whileHover={{ scale: 1.02, y: -4 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => navigate(`/surah/${surah.number}`)}
+              className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all flex items-center gap-6 group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-5 transition-opacity">
+                <RubElHizb className="w-[120px] h-[120px]" />
+              </div>
+              
+              <div className="w-16 h-16 rounded-[24px] bg-slate-50 text-slate-800 flex items-center justify-center text-lg font-black shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-all duration-500 shrink-0">
+                {surah.number}
+              </div>
+              
+              <div className="flex-1 text-left">
+                <h3 className="text-lg font-black text-slate-800 tracking-tight group-hover:text-emerald-700 transition-colors">{surah.englishName}</h3>
+                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">{surah.englishNameTranslation}</p>
+              </div>
+              
+              <div className="text-right">
+                <p className="text-2xl font-arabic text-emerald-700 font-bold mb-1">{surah.name}</p>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{surah.numberOfAyahs} Verses</p>
+              </div>
+            </motion.button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

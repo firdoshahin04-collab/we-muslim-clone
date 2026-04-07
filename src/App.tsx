@@ -10,6 +10,8 @@ import Nearby from './components/Nearby';
 import Tasbih from './components/Tasbih';
 import Settings from './components/Settings';
 import Duas from './components/Duas';
+import NamesOfAllah from './components/NamesOfAllah';
+import Azkar from './components/Azkar';
 import { PrayerProvider } from './components/PrayerProvider';
 
 function AnimatedRoutes() {
@@ -20,12 +22,14 @@ function AnimatedRoutes() {
       <Routes location={location} key={location.pathname}>
         <Route path="/" element={<PageWrapper><Home /></PageWrapper>} />
         <Route path="/quran" element={<PageWrapper><Quran /></PageWrapper>} />
-        <Route path="/quran/:number" element={<PageWrapper><SurahView /></PageWrapper>} />
+        <Route path="/surah/:number" element={<PageWrapper><SurahView /></PageWrapper>} />
         <Route path="/para" element={<PageWrapper><ParaMeanings /></PageWrapper>} />
         <Route path="/qibla" element={<PageWrapper><Qibla /></PageWrapper>} />
         <Route path="/tasbih" element={<PageWrapper><Tasbih /></PageWrapper>} />
         <Route path="/nearby" element={<PageWrapper><Nearby /></PageWrapper>} />
         <Route path="/duas" element={<PageWrapper><Duas /></PageWrapper>} />
+        <Route path="/names" element={<PageWrapper><NamesOfAllah /></PageWrapper>} />
+        <Route path="/azkar" element={<PageWrapper><Azkar /></PageWrapper>} />
         <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
       </Routes>
     </AnimatePresence>

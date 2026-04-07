@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2 } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -42,8 +42,15 @@ export default function Home() {
     return DAILY_DUAS[day % DAILY_DUAS.length];
   }, []);
 
-  // Spiritual Progress State (Mock for now, could be persisted)
-  const [prayersDone, setPrayersDone] = useState<string[]>([]);
+  // Spiritual Progress State (Persisted in localStorage)
+  const [prayersDone, setPrayersDone] = useState<string[]>(() => {
+    const saved = localStorage.getItem('prayersDone');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  useEffect(() => {
+    localStorage.setItem('prayersDone', JSON.stringify(prayersDone));
+  }, [prayersDone]);
 
   const hijriDate = useMemo(() => {
     return new Intl.DateTimeFormat('en-u-ca-islamic-uma', { day: 'numeric', month: 'long', year: 'numeric' }).format(currentTime);
@@ -72,61 +79,69 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col gap-6 p-6 bg-[#fcfcfd] min-h-full pb-24">
-      <header className="flex justify-between items-center mb-2 relative">
-        <div className="flex flex-col gap-0.5">
-          <div className="flex items-center gap-2">
-            <RubElHizb className="w-5 h-5 text-emerald-600 animate-pulse" />
-            <motion.h1 
+    <div className="flex flex-col gap-6 bg-[#fcfcfd] min-h-full pb-24">
+      {/* Premium Header (Non-sticky as per user request to avoid overlap) */}
+      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 p-6 z-50 shadow-sm overflow-hidden">
+        <IslamicPattern className="opacity-[0.03]" />
+        <div className="flex items-center justify-between relative z-10">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200 rotate-3 group hover:rotate-0 transition-transform duration-500">
+                <RubElHizb className="w-6 h-6 text-white" />
+              </div>
+              <motion.h1 
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className="text-2xl font-black text-slate-800 tracking-tight leading-none"
+              >
+                Assalamu Alaikum
+              </motion.h1>
+            </div>
+            <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="text-3xl font-black text-slate-800 tracking-tight"
+              transition={{ delay: 0.1 }}
+              className="flex items-center gap-2 mt-1"
             >
-              Assalamu Alaikum
-            </motion.h1>
+              <p className="text-emerald-600 text-[10px] font-black uppercase tracking-[0.2em]">
+                {format(currentTime, 'EEEE, d MMMM')}
+              </p>
+              <div className="w-1 h-1 bg-slate-300 rounded-full" />
+              <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                {hijriDate}
+              </p>
+            </motion.div>
           </div>
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex items-center gap-2"
-          >
-            <p className="text-emerald-600 text-[11px] font-black uppercase tracking-[0.2em]">
-              {format(currentTime, 'EEEE, d MMMM')}
-            </p>
-            <div className="w-1 h-1 bg-slate-300 rounded-full" />
-            <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.2em]">
-              {hijriDate}
-            </p>
-          </motion.div>
-        </div>
-        <div className="flex gap-2">
-          <motion.button 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              if (navigator.share) {
-                navigator.share({
-                  title: 'Islamic Hub',
-                  text: 'Check out this amazing Islamic app!',
-                  url: window.location.href,
-                });
-              }
-            }}
-            className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
-          >
-            <Share2 size={20} strokeWidth={2.5} />
-          </motion.button>
-          <motion.button 
-            whileHover={{ scale: 1.05, rotate: 5 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/settings')}
-            className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
-          >
-            <SettingsIcon size={22} strokeWidth={2.5} />
-          </motion.button>
+          <div className="flex gap-2">
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                if (navigator.share) {
+                  navigator.share({
+                    title: 'Islamic Hub',
+                    text: 'Check out this amazing Islamic app!',
+                    url: window.location.href,
+                  });
+                }
+              }}
+              className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
+            >
+              <Share2 size={20} strokeWidth={2.5} />
+            </motion.button>
+            <motion.button 
+              whileHover={{ scale: 1.05, rotate: 5 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => navigate('/settings')}
+              className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
+            >
+              <SettingsIcon size={22} strokeWidth={2.5} />
+            </motion.button>
+          </div>
         </div>
       </header>
+
+      <div className="px-6 flex flex-col gap-6">
 
       {/* Hero Prayer Card */}
       <motion.div 
@@ -222,43 +237,44 @@ export default function Home() {
         </div>
       </motion.section>
 
-      {/* Quick Actions */}
+      {/* Features Grid */}
       <div className="grid grid-cols-2 gap-4">
-        <motion.button
-          whileHover={{ y: -4, scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => navigate('/duas')}
-          className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
-            <Heart size={80} />
-          </div>
-          <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all shadow-inner">
-            <Heart size={24} fill="currentColor" />
-          </div>
-          <div className="text-left relative z-10">
-            <p className="font-black text-slate-800 tracking-tight">Daily Duas</p>
-            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Supplications</p>
-          </div>
-        </motion.button>
-
-        <motion.button
-          whileHover={{ y: -4, scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => navigate('/tasbih')}
-          className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group relative overflow-hidden"
-        >
-          <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
-            <Fingerprint size={80} />
-          </div>
-          <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all shadow-inner">
-            <Fingerprint size={24} />
-          </div>
-          <div className="text-left relative z-10">
-            <p className="font-black text-slate-800 tracking-tight">Tasbih</p>
-            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Dhikr Counter</p>
-          </div>
-        </motion.button>
+        {[
+          { id: 'names', title: '99 Names', icon: Sparkles, color: 'bg-amber-50', iconColor: 'text-amber-600', path: '/names', description: 'Asma-ul-Husna' },
+          { id: 'quran', title: 'Holy Quran', icon: Book, color: 'bg-emerald-50', iconColor: 'text-emerald-600', path: '/quran', description: 'Read & Listen' },
+          { id: 'duas', title: 'Daily Duas', icon: Heart, color: 'bg-rose-50', iconColor: 'text-rose-600', path: '/duas', description: 'Supplications' },
+          { id: 'azkar', title: 'Azkar', icon: Moon, color: 'bg-indigo-50', iconColor: 'text-indigo-600', path: '/azkar', description: 'Remembrance' },
+          { id: 'nearby', title: 'Nearby', icon: MapPin, color: 'bg-blue-50', iconColor: 'text-blue-600', path: '/nearby', description: 'Find Masjids' },
+          { id: 'tasbih', title: 'Tasbih', icon: Fingerprint, color: 'bg-slate-50', iconColor: 'text-slate-600', path: '/tasbih', description: 'Digital Counter' },
+        ].map((feature) => (
+          <motion.button
+            key={feature.id}
+            whileHover={{ y: -4, scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => navigate(feature.path)}
+            className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group relative overflow-hidden"
+          >
+            <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-10 transition-opacity">
+              <feature.icon size={80} />
+            </div>
+            <div className={cn(
+              "w-12 h-12 rounded-2xl flex items-center justify-center group-hover:text-white transition-all shadow-inner",
+              feature.color,
+              feature.iconColor,
+              feature.id === 'names' ? 'group-hover:bg-amber-500' : 
+              feature.id === 'quran' ? 'group-hover:bg-emerald-500' :
+              feature.id === 'duas' ? 'group-hover:bg-rose-500' :
+              feature.id === 'azkar' ? 'group-hover:bg-indigo-500' :
+              feature.id === 'nearby' ? 'group-hover:bg-blue-500' : 'group-hover:bg-slate-500'
+            )}>
+              <feature.icon size={24} fill={feature.id === 'names' || feature.id === 'duas' ? "currentColor" : "none"} />
+            </div>
+            <div className="text-left relative z-10">
+              <p className="font-black text-slate-800 tracking-tight">{feature.title}</p>
+              <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{feature.description}</p>
+            </div>
+          </motion.button>
+        ))}
       </div>
 
       {/* Quran Verse Section */}
@@ -416,6 +432,7 @@ export default function Home() {
           <div className="absolute -right-10 -bottom-10 w-32 h-32 bg-emerald-200/30 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-1000 animate-glow" />
         </motion.div>
       </motion.section>
+      </div>
     </div>
   );
 }

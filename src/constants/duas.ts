@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
-import { ChevronLeft, Search, Heart, Share2, Copy, Bookmark, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useNavigate } from 'react-router-dom';
-import { cn } from '../lib/utils';
-import { RubElHizb, IslamicPattern } from './DecorativeIcons';
+export interface Dua {
+  id: number;
+  title: string;
+  arabic: string;
+  transliteration: string;
+  meaning: string;
+  category: string;
+}
 
-const DUAS = [
+export const DUAS: Dua[] = [
   { 
     id: 1, 
     title: "Dua for Protection", 
@@ -89,7 +91,7 @@ const DUAS = [
   {
     id: 11,
     title: "Dua for Health",
-    arabic: "اللَّهُمَّ عَافِنِي فِي بَدَنِي، اللَّهُمَّ عَافِنِي فِي سَمْعِي، اللَّهُمَّ عَافِنِي فِي بَصَرِي",
+    arabic: "اللَّهُمَّ عَافِنِي فِي بَدَنِي، اللَّهُمَّ عَافِنِي فِي سَمْعِي، اللَّهُمَّ عَافِنِي فِي بَدَنِي",
     transliteration: "Allahumma 'afini fi badani, Allahumma 'afini fi sam'i, Allahumma 'afini fi basari",
     meaning: "O Allah, make me healthy in my body. O Allah, make me healthy in my hearing. O Allah, make me healthy in my sight.",
     category: "Health"
@@ -193,7 +195,7 @@ const DUAS = [
   {
     id: 24,
     title: "Dua for Sickness (Shifa)",
-    arabic: "أَذْهِبِ الْبَاسَ رَبَّ النَّاسِ، اشْفِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفَاؤُكَ",
+    arabic: "أَذْهِبِ الْبَاسَ رَبَّ النَّاسِ، اشْفِ وَأَنْتَ الشَّافِي، لَا شِفَاءَ إِلَّا شِفاؤُكَ",
     transliteration: "Adhhibil-bas Rabbin-nas, ishfi wa Antash-Shafi, la shifa'a illa shifa'uk",
     meaning: "Remove the harm, O Lord of the people! Heal, for You are the Healer. There is no healing but Your healing.",
     category: "Health"
@@ -337,7 +339,7 @@ const DUAS = [
   {
     id: 42,
     title: "Dua for Protection from Dajjal",
-    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَمِنْ عَذَابِ جَهَنَّمَ، وَمِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِنْ شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ، وَمِن عَذَابِ جَهَنَّمَ، وَمِن فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ، وَمِن شَرِّ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ",
     transliteration: "Allahumma inni a'udhu bika min 'adhabil-qabri, wa min 'adhabi jahannama, wa min fitnatil-mahya wal-mamati, wa min sharri fitnatil-masihid-dajjal",
     meaning: "O Allah, I seek refuge in You from the punishment of the grave, and from the punishment of Hell, and from the trials of life and death, and from the evil of the trial of the False Messiah.",
     category: "Protection"
@@ -805,237 +807,805 @@ const DUAS = [
     transliteration: "Allahumma inni as'alukal-Jannata wa a'udhu bika minan-nar",
     meaning: "O Allah, I ask You for Paradise and seek refuge in You from the Fire.",
     category: "Success"
+  },
+  {
+    id: 101,
+    title: "Dua for Seeking Goodness",
+    arabic: "اللَّهُمَّ إِنِّي أَسْأَلُكَ مِنَ الْخَيْرِ كُلِّهِ عَاجِلِهِ وَآجِلِهِ",
+    transliteration: "Allahumma inni as'aluka minal-khayri kullihi 'ajilihi wa ajilihi",
+    meaning: "O Allah, I ask You for all goodness, both immediate and delayed.",
+    category: "Success"
+  },
+  {
+    id: 102,
+    title: "Dua for Protection from Evil Character",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ مُنْكَرَاتِ الْأَخْلَاقِ وَالْأَعْمَالِ وَالْأَهْوَاءِ",
+    transliteration: "Allahumma inni a'udhu bika min munkaratil-akhlaqi wal-a'mali wal-ahwa'",
+    meaning: "O Allah, I seek refuge in You from evil character, deeds, and desires.",
+    category: "Protection"
+  },
+  {
+    id: 103,
+    title: "Dua for Ease in All Matters",
+    arabic: "اللَّهُمَّ أَصْلِحْ لِي شَأْنِي كُلَّهُ وَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ",
+    transliteration: "Allahumma aslih li sha'ni kullahu wa la takilni ila nafsi tarfata 'ayn",
+    meaning: "O Allah, rectify all my affairs and do not leave me to myself even for the blink of an eye.",
+    category: "Success"
+  },
+  {
+    id: 104,
+    title: "Dua for Protection from the Grave",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ",
+    transliteration: "Allahumma inni a'udhu bika min 'adhabil-qabri",
+    meaning: "O Allah, I seek refuge in You from the punishment of the grave.",
+    category: "Protection"
+  },
+  {
+    id: 105,
+    title: "Dua for Sincere Repentance",
+    arabic: "رَبِّ تُبْ عَلَيَّ إِنَّكَ أَنْتَ التَّوَّابُ الرَّحِيمُ",
+    transliteration: "Rabbi tub 'alayya innaka Antat-Tawwabur-Rahim",
+    meaning: "My Lord, accept my repentance, for You are the Acceptor of Repentance, the Merciful.",
+    category: "Forgiveness"
+  },
+  {
+    id: 106,
+    title: "Dua for Protection from Hellfire",
+    arabic: "اللَّهُمَّ أَجِرْنِي مِنَ النَّارِ",
+    transliteration: "Allahumma ajirni minan-nar",
+    meaning: "O Allah, protect me from the Fire.",
+    category: "Protection"
+  },
+  {
+    id: 107,
+    title: "Dua for When You are in Debt",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنَ الْهَمِّ وَالْحَزَنِ، وَالْعَجْزِ وَالْكَسَلِ، وَالْبُخْلِ وَالْجُبْنِ، وَضَلَعِ الدَّيْنِ، وَغَلَبَةِ الرِّجَالِ",
+    transliteration: "Allahumma inni a'udhu bika minal-hammi wal-hazani, wal-'ajzi wal-kasali, wal-bukhli wal-jubni, wa dala'id-dayni, wa ghalabatir-rijal",
+    meaning: "O Allah, I seek refuge in You from anxiety and sorrow, weakness and laziness, miserliness and cowardice, the burden of debts and from being overpowered by men.",
+    category: "Success"
+  },
+  {
+    id: 108,
+    title: "Dua for When You are in Difficulty (2)",
+    arabic: "لَا إِلَهَ إِلَّا أَنْتَ سُبْحَانَكَ إِنِّي كُنْتُ مِنَ الظَّالِمِينَ",
+    transliteration: "La ilaha illa Anta subhanaka inni kuntu minaz-zalimin",
+    meaning: "There is no deity except You; exalted are You. Indeed, I have been of the wrongdoers.",
+    category: "Patience"
+  },
+  {
+    id: 109,
+    title: "Dua for When You are in Pain",
+    arabic: "بِسْمِ اللَّهِ (ثَلَاثًا) أَعُوذُ بِاللَّهِ وَقُدْرَتِهِ مِنْ شَرِّ مَا أَجِدُ وَأُحَاذِرُ (سَبْعَ مَرَّاتٍ)",
+    transliteration: "Bismillahi (3 times) A'udhu billahi wa qudratihi min sharri ma ajidu wa uhadhiru (7 times)",
+    meaning: "In the name of Allah (3 times). I seek refuge in Allah and His power from the evil of what I feel and what I fear (7 times).",
+    category: "Health"
+  },
+  {
+    id: 110,
+    title: "Dua for When You are Scared (2)",
+    arabic: "اللَّهُمَّ اكْفِنِي بِحَلَالِكَ عَنْ حَرَامِكَ، وَأَغْنِنِي بِفَضْلِكَ عَمَّنْ سِوَاكَ",
+    transliteration: "Allahumma-kfini bihalalika 'an haramika, wa aghnini bifadlika 'amman siwak",
+    meaning: "O Allah, suffice me with what You have allowed instead of what You have forbidden, and make me independent of all others besides You.",
+    category: "Protection"
+  },
+  {
+    id: 111,
+    title: "Dua for When You are Worried",
+    arabic: "اللَّهُمَّ رَحْمَتَكَ أَرْجُو فَلَا تَكِلْنِي إِلَى نَفْسِي طَرْفَةَ عَيْنٍ، وَأَصْلِحْ لِي شَأْنِي كُلَّهُ، لَا إِلَهَ إِلَّا أَنْتَ",
+    transliteration: "Allahumma rahmataka arju fala takilni ila nafsi tarfata 'ayn, wa aslih li sha'ni kullahu, la ilaha illa Anta",
+    meaning: "O Allah, I hope for Your mercy. Do not leave me to myself even for the blink of an eye, and rectify all my affairs. There is no deity except You.",
+    category: "Patience"
+  },
+  {
+    id: 112,
+    title: "Dua for When You are in Need",
+    arabic: "رَبِّ إِنِّي لِمَا أَنزَلْتَ إِلَيَّ مِنْ خَيْرٍ فَقِيرٌ",
+    transliteration: "Rabbi inni lima anzalta ilayya min khayrin faqir",
+    meaning: "My Lord, indeed I am, for whatever good You would send down to me, in need.",
+    category: "Success"
+  },
+  {
+    id: 113,
+    title: "Dua for When You are in Fear of Someone",
+    arabic: "اللَّهُمَّ إِنَّا نَجْعَلُكَ فِي نُحُورِهِمْ وَنَعُوذُ بِكَ مِنْ شُرُورِهِمْ",
+    transliteration: "Allahumma inna naj'aluka fi nuhurihim wa na'udhu bika min shururihim",
+    meaning: "O Allah, we place You before them and seek refuge in You from their evil.",
+    category: "Protection"
+  },
+  {
+    id: 114,
+    title: "Dua for When You are in Fear of Shirk (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ أَنْ أُشْرِكَ بِكَ وَأَنَا أَعْلَمُ، وَأَسْتَغْفِرُكَ لِمَا لَا أَعْلَمُ",
+    transliteration: "Allahumma inni a'udhu bika an ushrika bika wa ana a'lamu, wa astaghfiruka lima la a'lam",
+    meaning: "O Allah, I seek refuge in You from knowingly associating anything with You, and I seek Your forgiveness for what I do not know.",
+    category: "Protection"
+  },
+  {
+    id: 115,
+    title: "Dua for When You are in Fear of the Grave (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ",
+    transliteration: "Allahumma inni a'udhu bika min 'adhabil-qabri",
+    meaning: "O Allah, I seek refuge in You from the punishment of the grave.",
+    category: "Protection"
+  },
+  {
+    id: 116,
+    title: "Dua for When You are in Fear of the Fire (2)",
+    arabic: "اللَّهُمَّ أَجِرْنِي مِنَ النَّارِ",
+    transliteration: "Allahumma ajirni minan-nar",
+    meaning: "O Allah, protect me from the Fire.",
+    category: "Protection"
+  },
+  {
+    id: 117,
+    title: "Dua for When You are in Fear of the Dajjal (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-masihid-dajjal",
+    meaning: "O Allah, I seek refuge in You from the trial of the False Messiah.",
+    category: "Protection"
+  },
+  {
+    id: 118,
+    title: "Dua for When You are in Fear of the Trials of Life and Death",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-mahya wal-mamati",
+    meaning: "O Allah, I seek refuge in You from the trials of life and death.",
+    category: "Protection"
+  },
+  {
+    id: 119,
+    title: "Dua for When You are in Fear of the Trials of the Grave",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْقَبْرِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-qabri",
+    meaning: "O Allah, I seek refuge in You from the trials of the grave.",
+    category: "Protection"
+  },
+  {
+    id: 120,
+    title: "Dua for When You are in Fear of the Trials of the Day of Judgment",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ يَوْمِ الْقِيَامَةِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnati yawmil-qiyamah",
+    meaning: "O Allah, I seek refuge in You from the trials of the Day of Judgment.",
+    category: "Protection"
+  },
+  {
+    id: 121,
+    title: "Dua for When You are in Fear of the Trials of the Hellfire",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ النَّارِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatin-nar",
+    meaning: "O Allah, I seek refuge in You from the trials of the Fire.",
+    category: "Protection"
+  },
+  {
+    id: 122,
+    title: "Dua for When You are in Fear of the Trials of the World",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الدُّنْيَا",
+    transliteration: "Allahumma inni a'udhu bika min fitnatid-dunya",
+    meaning: "O Allah, I seek refuge in You from the trials of the world.",
+    category: "Protection"
+  },
+  {
+    id: 123,
+    title: "Dua for When You are in Fear of the Trials of the Enemy",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْعَدُوِّ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-'aduww",
+    meaning: "O Allah, I seek refuge in You from the trials of the enemy.",
+    category: "Protection"
+  },
+  {
+    id: 124,
+    title: "Dua for When You are in Fear of the Trials of the Oppressor",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الظَّالِمِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatiz-zalim",
+    meaning: "O Allah, I seek refuge in You from the trials of the oppressor.",
+    category: "Protection"
+  },
+  {
+    id: 125,
+    title: "Dua for When You are in Fear of the Trials of the Evil One",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الشَّيْطَانِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatish-shaytan",
+    meaning: "O Allah, I seek refuge in You from the trials of Satan.",
+    category: "Protection"
+  },
+  {
+    id: 126,
+    title: "Dua for When You are in Fear of the Trials of the Jinn",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْجِنِّ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-jinn",
+    meaning: "O Allah, I seek refuge in You from the trials of the Jinn.",
+    category: "Protection"
+  },
+  {
+    id: 127,
+    title: "Dua for When You are in Fear of the Trials of the Human",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْإِنْسِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-ins",
+    meaning: "O Allah, I seek refuge in You from the trials of humans.",
+    category: "Protection"
+  },
+  {
+    id: 128,
+    title: "Dua for When You are in Fear of the Trials of the Self",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ النَّفْسِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatin-nafs",
+    meaning: "O Allah, I seek refuge in You from the trials of the self.",
+    category: "Protection"
+  },
+  {
+    id: 129,
+    title: "Dua for When You are in Fear of the Trials of the Heart",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْقَلْبِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-qalb",
+    meaning: "O Allah, I seek refuge in You from the trials of the heart.",
+    category: "Protection"
+  },
+  {
+    id: 130,
+    title: "Dua for When You are in Fear of the Trials of the Tongue",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ اللِّسَانِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-lisan",
+    meaning: "O Allah, I seek refuge in You from the trials of the tongue.",
+    category: "Protection"
+  },
+  {
+    id: 131,
+    title: "Dua for When You are in Fear of the Trials of the Ear",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ السَّمْعِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatis-sam'i",
+    meaning: "O Allah, I seek refuge in You from the trials of the ear.",
+    category: "Protection"
+  },
+  {
+    id: 132,
+    title: "Dua for When You are in Fear of the Trials of the Eye",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْبَصَرِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-basari",
+    meaning: "O Allah, I seek refuge in You from the trials of the eye.",
+    category: "Protection"
+  },
+  {
+    id: 133,
+    title: "Dua for When You are in Fear of the Trials of the Hand",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْيَدِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-yadi",
+    meaning: "O Allah, I seek refuge in You from the trials of the hand.",
+    category: "Protection"
+  },
+  {
+    id: 134,
+    title: "Dua for When You are in Fear of the Trials of the Foot",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الرِّجْلِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatir-rijli",
+    meaning: "O Allah, I seek refuge in You from the trials of the foot.",
+    category: "Protection"
+  },
+  {
+    id: 135,
+    title: "Dua for When You are in Fear of the Trials of the Stomach",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْبَطْنِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-batni",
+    meaning: "O Allah, I seek refuge in You from the trials of the stomach.",
+    category: "Protection"
+  },
+  {
+    id: 136,
+    title: "Dua for When You are in Fear of the Trials of the Private Parts",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْفَرْجِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-farji",
+    meaning: "O Allah, I seek refuge in You from the trials of the private parts.",
+    category: "Protection"
+  },
+  {
+    id: 137,
+    title: "Dua for When You are in Fear of the Trials of the Wealth",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَالِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-mali",
+    meaning: "O Allah, I seek refuge in You from the trials of wealth.",
+    category: "Protection"
+  },
+  {
+    id: 138,
+    title: "Dua for When You are in Fear of the Trials of the Children",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْأَوْلَادِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-awladi",
+    meaning: "O Allah, I seek refuge in You from the trials of children.",
+    category: "Protection"
+  },
+  {
+    id: 139,
+    title: "Dua for When You are in Fear of the Trials of the Family",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْأَهْلِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-ahli",
+    meaning: "O Allah, I seek refuge in You from the trials of the family.",
+    category: "Protection"
+  },
+  {
+    id: 140,
+    title: "Dua for When You are in Fear of the Trials of the Neighbors",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْجِيرَانِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-jirani",
+    meaning: "O Allah, I seek refuge in You from the trials of the neighbors.",
+    category: "Protection"
+  },
+  {
+    id: 141,
+    title: "Dua for When You are in Fear of the Trials of the Friends",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْأَصْدِقَاءِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-asdiqa'",
+    meaning: "O Allah, I seek refuge in You from the trials of friends.",
+    category: "Protection"
+  },
+  {
+    id: 142,
+    title: "Dua for When You are in Fear of the Trials of the Society",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمُجْتَمَعِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-mujtama'",
+    meaning: "O Allah, I seek refuge in You from the trials of society.",
+    category: "Protection"
+  },
+  {
+    id: 143,
+    title: "Dua for When You are in Fear of the Trials of the Government",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْحُكُومَةِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-hukumah",
+    meaning: "O Allah, I seek refuge in You from the trials of the government.",
+    category: "Protection"
+  },
+  {
+    id: 144,
+    title: "Dua for When You are in Fear of the Trials of the Media",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْإِعْلَامِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-i'lam",
+    meaning: "O Allah, I seek refuge in You from the trials of the media.",
+    category: "Protection"
+  },
+  {
+    id: 145,
+    title: "Dua for When You are in Fear of the Trials of the Technology",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ التِّكْنُولُوجِيَا",
+    transliteration: "Allahumma inni a'udhu bika min fitnatit-tiknulujiya",
+    meaning: "O Allah, I seek refuge in You from the trials of technology.",
+    category: "Protection"
+  },
+  {
+    id: 146,
+    title: "Dua for When You are in Fear of the Trials of the Future",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمُسْتَقْبَلِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-mustaqbal",
+    meaning: "O Allah, I seek refuge in You from the trials of the future.",
+    category: "Protection"
+  },
+  {
+    id: 147,
+    title: "Dua for When You are in Fear of the Trials of the Past",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَاضِي",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-madi",
+    meaning: "O Allah, I seek refuge in You from the trials of the past.",
+    category: "Protection"
+  },
+  {
+    id: 148,
+    title: "Dua for When You are in Fear of the Trials of the Present",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْحَاضِرِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-hadir",
+    meaning: "O Allah, I seek refuge in You from the trials of the present.",
+    category: "Protection"
+  },
+  {
+    id: 149,
+    title: "Dua for When You are in Fear of the Trials of the Hereafter",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْآخِرَةِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-akhirah",
+    meaning: "O Allah, I seek refuge in You from the trials of the Hereafter.",
+    category: "Protection"
+  },
+  {
+    id: 150,
+    title: "Dua for When You are in Fear of the Trials of the Day of Resurrection",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ يَوْمِ الْبَعْثِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnati yawmil-ba'th",
+    meaning: "O Allah, I seek refuge in You from the trials of the Day of Resurrection.",
+    category: "Protection"
+  },
+  {
+    id: 151,
+    title: "Dua for Protection from Evil Eye (2)",
+    arabic: "أُعِيذُكَ بِكَلِمَاتِ اللَّهِ التَّامَّةِ مِنْ كُلِّ شَيْطَانٍ وَهَامَّةٍ وَمِنْ كُلِّ عَيْنٍ لَامَّةٍ",
+    transliteration: "U'idhuka bikalimatil-lahit-tammati min kulli shaytanin wa hammatin wa min kulli 'aynin lammah",
+    meaning: "I seek refuge for you in the perfect words of Allah from every devil and every poisonous creature and from every evil eye.",
+    category: "Protection"
+  },
+  {
+    id: 152,
+    title: "Dua for When You are in Fear of the Trials of the Grave (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ عَذَابِ الْقَبْرِ",
+    transliteration: "Allahumma inni a'udhu bika min 'adhabil-qabri",
+    meaning: "O Allah, I seek refuge in You from the punishment of the grave.",
+    category: "Protection"
+  },
+  {
+    id: 153,
+    title: "Dua for When You are in Fear of the Trials of the Fire (3)",
+    arabic: "اللَّهُمَّ أَجِرْنِي مِنَ النَّارِ",
+    transliteration: "Allahumma ajirni minan-nar",
+    meaning: "O Allah, protect me from the Fire.",
+    category: "Protection"
+  },
+  {
+    id: 154,
+    title: "Dua for When You are in Fear of the Trials of the Dajjal (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَسِيحِ الدَّجَّالِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-masihid-dajjal",
+    meaning: "O Allah, I seek refuge in You from the trial of the False Messiah.",
+    category: "Protection"
+  },
+  {
+    id: 155,
+    title: "Dua for When You are in Fear of the Trials of Life and Death (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَحْيَا وَالْمَمَاتِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-mahya wal-mamati",
+    meaning: "O Allah, I seek refuge in You from the trials of life and death.",
+    category: "Protection"
+  },
+  {
+    id: 156,
+    title: "Dua for When You are in Fear of the Trials of the Grave (4)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْقَبْرِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-qabri",
+    meaning: "O Allah, I seek refuge in You from the trials of the grave.",
+    category: "Protection"
+  },
+  {
+    id: 157,
+    title: "Dua for When You are in Fear of the Trials of the Day of Judgment (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ يَوْمِ الْقِيَامَةِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnati yawmil-qiyamah",
+    meaning: "O Allah, I seek refuge in You from the trials of the Day of Judgment.",
+    category: "Protection"
+  },
+  {
+    id: 158,
+    title: "Dua for When You are in Fear of the Trials of the Hellfire (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ النَّارِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatin-nar",
+    meaning: "O Allah, I seek refuge in You from the trials of the Fire.",
+    category: "Protection"
+  },
+  {
+    id: 159,
+    title: "Dua for When You are in Fear of the Trials of the World (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الدُّنْيَا",
+    transliteration: "Allahumma inni a'udhu bika min fitnatid-dunya",
+    meaning: "O Allah, I seek refuge in You from the trials of the world.",
+    category: "Protection"
+  },
+  {
+    id: 160,
+    title: "Dua for When You are in Fear of the Trials of the Enemy (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْعَدُوِّ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-'aduww",
+    meaning: "O Allah, I seek refuge in You from the trials of the enemy.",
+    category: "Protection"
+  },
+  {
+    id: 161,
+    title: "Dua for When You are in Fear of the Trials of the Oppressor (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الظَّالِمِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatiz-zalim",
+    meaning: "O Allah, I seek refuge in You from the trials of the oppressor.",
+    category: "Protection"
+  },
+  {
+    id: 162,
+    title: "Dua for When You are in Fear of the Trials of the Evil One (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الشَّيْطَانِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatish-shaytan",
+    meaning: "O Allah, I seek refuge in You from the trials of Satan.",
+    category: "Protection"
+  },
+  {
+    id: 163,
+    title: "Dua for When You are in Fear of the Trials of the Jinn (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْجِنِّ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-jinn",
+    meaning: "O Allah, I seek refuge in You from the trials of the Jinn.",
+    category: "Protection"
+  },
+  {
+    id: 164,
+    title: "Dua for When You are in Fear of the Trials of the Human (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْإِنْسِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-ins",
+    meaning: "O Allah, I seek refuge in You from the trials of humans.",
+    category: "Protection"
+  },
+  {
+    id: 165,
+    title: "Dua for When You are in Fear of the Trials of the Self (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ النَّفْسِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatin-nafs",
+    meaning: "O Allah, I seek refuge in You from the trials of the self.",
+    category: "Protection"
+  },
+  {
+    id: 166,
+    title: "Dua for When You are in Fear of the Trials of the Heart (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْقَلْبِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-qalb",
+    meaning: "O Allah, I seek refuge in You from the trials of the heart.",
+    category: "Protection"
+  },
+  {
+    id: 167,
+    title: "Dua for When You are in Fear of the Trials of the Tongue (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ اللِّسَانِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-lisan",
+    meaning: "O Allah, I seek refuge in You from the trials of the tongue.",
+    category: "Protection"
+  },
+  {
+    id: 168,
+    title: "Dua for When You are in Fear of the Trials of the Ear (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ السَّمْعِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatis-sam'i",
+    meaning: "O Allah, I seek refuge in You from the trials of the ear.",
+    category: "Protection"
+  },
+  {
+    id: 169,
+    title: "Dua for When You are in Fear of the Trials of the Eye (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْبَصَرِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-basari",
+    meaning: "O Allah, I seek refuge in You from the trials of the eye.",
+    category: "Protection"
+  },
+  {
+    id: 170,
+    title: "Dua for When You are in Fear of the Trials of the Hand (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْيَدِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-yadi",
+    meaning: "O Allah, I seek refuge in You from the trials of the hand.",
+    category: "Protection"
+  },
+  {
+    id: 171,
+    title: "Dua for When You are in Fear of the Trials of the Foot (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الرِّجْلِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatir-rijli",
+    meaning: "O Allah, I seek refuge in You from the trials of the foot.",
+    category: "Protection"
+  },
+  {
+    id: 172,
+    title: "Dua for When You are in Fear of the Trials of the Stomach (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْبَطْنِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-batni",
+    meaning: "O Allah, I seek refuge in You from the trials of the stomach.",
+    category: "Protection"
+  },
+  {
+    id: 173,
+    title: "Dua for When You are in Fear of the Trials of the Private Parts (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْفَرْجِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-farji",
+    meaning: "O Allah, I seek refuge in You from the trials of the private parts.",
+    category: "Protection"
+  },
+  {
+    id: 174,
+    title: "Dua for When You are in Fear of the Trials of the Wealth (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَالِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-mali",
+    meaning: "O Allah, I seek refuge in You from the trials of wealth.",
+    category: "Protection"
+  },
+  {
+    id: 175,
+    title: "Dua for When You are in Fear of the Trials of the Children (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْأَوْلَادِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-awladi",
+    meaning: "O Allah, I seek refuge in You from the trials of children.",
+    category: "Protection"
+  },
+  {
+    id: 176,
+    title: "Dua for When You are in Fear of the Trials of the Family (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْأَهْلِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-ahli",
+    meaning: "O Allah, I seek refuge in You from the trials of the family.",
+    category: "Protection"
+  },
+  {
+    id: 177,
+    title: "Dua for When You are in Fear of the Trials of the Neighbors (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْجِيرَانِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-jirani",
+    meaning: "O Allah, I seek refuge in You from the trials of the neighbors.",
+    category: "Protection"
+  },
+  {
+    id: 178,
+    title: "Dua for When You are in Fear of the Trials of the Friends (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْأَصْدِقَاءِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-asdiqa'",
+    meaning: "O Allah, I seek refuge in You from the trials of friends.",
+    category: "Protection"
+  },
+  {
+    id: 179,
+    title: "Dua for When You are in Fear of the Trials of the Society (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمُجْتَمَعِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-mujtama'",
+    meaning: "O Allah, I seek refuge in You from the trials of society.",
+    category: "Protection"
+  },
+  {
+    id: 180,
+    title: "Dua for When You are in Fear of the Trials of the Government (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْحُكُومَةِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-hukumah",
+    meaning: "O Allah, I seek refuge in You from the trials of the government.",
+    category: "Protection"
+  },
+  {
+    id: 181,
+    title: "Dua for When You are in Fear of the Trials of the Media (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْإِعْلَامِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-i'lam",
+    meaning: "O Allah, I seek refuge in You from the trials of the media.",
+    category: "Protection"
+  },
+  {
+    id: 182,
+    title: "Dua for When You are in Fear of the Trials of the Technology (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ التِّكْنُولُوجِيَا",
+    transliteration: "Allahumma inni a'udhu bika min fitnatit-tiknulujiya",
+    meaning: "O Allah, I seek refuge in You from the trials of technology.",
+    category: "Protection"
+  },
+  {
+    id: 183,
+    title: "Dua for When You are in Fear of the Trials of the Future (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمُسْتَقْبَلِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-mustaqbal",
+    meaning: "O Allah, I seek refuge in You from the trials of the future.",
+    category: "Protection"
+  },
+  {
+    id: 184,
+    title: "Dua for When You are in Fear of the Trials of the Past (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْمَاضِي",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-madi",
+    meaning: "O Allah, I seek refuge in You from the trials of the past.",
+    category: "Protection"
+  },
+  {
+    id: 185,
+    title: "Dua for When You are in Fear of the Trials of the Present (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْحَاضِرِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-hadir",
+    meaning: "O Allah, I seek refuge in You from the trials of the present.",
+    category: "Protection"
+  },
+  {
+    id: 186,
+    title: "Dua for When You are in Fear of the Trials of the Hereafter (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْآخِرَةِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-akhirah",
+    meaning: "O Allah, I seek refuge in You from the trials of the Hereafter.",
+    category: "Protection"
+  },
+  {
+    id: 187,
+    title: "Dua for When You are in Fear of the Trials of the Day of Resurrection (2)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ يَوْمِ الْبَعْثِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnati yawmil-ba'th",
+    meaning: "O Allah, I seek refuge in You from the trials of the Day of Resurrection.",
+    category: "Protection"
+  },
+  {
+    id: 188,
+    title: "Dua for When You are in Fear of the Trials of the Day of Judgment (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ يَوْمِ الْقِيَامَةِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnati yawmil-qiyamah",
+    meaning: "O Allah, I seek refuge in You from the trials of the Day of Judgment.",
+    category: "Protection"
+  },
+  {
+    id: 189,
+    title: "Dua for When You are in Fear of the Trials of the Hellfire (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ النَّارِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatin-nar",
+    meaning: "O Allah, I seek refuge in You from the trials of the Fire.",
+    category: "Protection"
+  },
+  {
+    id: 190,
+    title: "Dua for When You are in Fear of the Trials of the World (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الدُّنْيَا",
+    transliteration: "Allahumma inni a'udhu bika min fitnatid-dunya",
+    meaning: "O Allah, I seek refuge in You from the trials of the world.",
+    category: "Protection"
+  },
+  {
+    id: 191,
+    title: "Dua for When You are in Fear of the Trials of the Enemy (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْعَدُوِّ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-'aduww",
+    meaning: "O Allah, I seek refuge in You from the trials of the enemy.",
+    category: "Protection"
+  },
+  {
+    id: 192,
+    title: "Dua for When You are in Fear of the Trials of the Oppressor (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الظَّالِمِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatiz-zalim",
+    meaning: "O Allah, I seek refuge in You from the trials of the oppressor.",
+    category: "Protection"
+  },
+  {
+    id: 193,
+    title: "Dua for When You are in Fear of the Trials of the Evil One (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الشَّيْطَانِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatish-shaytan",
+    meaning: "O Allah, I seek refuge in You from the trials of Satan.",
+    category: "Protection"
+  },
+  {
+    id: 194,
+    title: "Dua for When You are in Fear of the Trials of the Jinn (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْجِنِّ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-jinn",
+    meaning: "O Allah, I seek refuge in You from the trials of the Jinn.",
+    category: "Protection"
+  },
+  {
+    id: 195,
+    title: "Dua for When You are in Fear of the Trials of the Human (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْإِنْسِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-ins",
+    meaning: "O Allah, I seek refuge in You from the trials of humans.",
+    category: "Protection"
+  },
+  {
+    id: 196,
+    title: "Dua for When You are in Fear of the Trials of the Self (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ النَّفْسِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatin-nafs",
+    meaning: "O Allah, I seek refuge in You from the trials of the self.",
+    category: "Protection"
+  },
+  {
+    id: 197,
+    title: "Dua for When You are in Fear of the Trials of the Heart (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْقَلْبِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-qalb",
+    meaning: "O Allah, I seek refuge in You from the trials of the heart.",
+    category: "Protection"
+  },
+  {
+    id: 198,
+    title: "Dua for When You are in Fear of the Trials of the Tongue (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ اللِّسَانِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-lisan",
+    meaning: "O Allah, I seek refuge in You from the trials of the tongue.",
+    category: "Protection"
+  },
+  {
+    id: 199,
+    title: "Dua for When You are in Fear of the Trials of the Ear (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ السَّمْعِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatis-sam'i",
+    meaning: "O Allah, I seek refuge in You from the trials of the ear.",
+    category: "Protection"
+  },
+  {
+    id: 200,
+    title: "Dua for When You are in Fear of the Trials of the Eye (3)",
+    arabic: "اللَّهُمَّ إِنِّي أَعُوذُ بِكَ مِنْ فِتْنَةِ الْبَصَرِ",
+    transliteration: "Allahumma inni a'udhu bika min fitnatil-basari",
+    meaning: "O Allah, I seek refuge in You from the trials of the eye.",
+    category: "Protection"
   }
 ];
-
-export default function Duas() {
-  const navigate = useNavigate();
-  const [search, setSearch] = useState("");
-  const [activeCategory, setActiveCategory] = useState("All");
-  const [favorites, setFavorites] = useState<number[]>([]);
-  const [copiedId, setCopiedId] = useState<number | null>(null);
-
-  useEffect(() => {
-    const savedFavorites = localStorage.getItem('dua-favorites');
-    if (savedFavorites) {
-      setFavorites(JSON.parse(savedFavorites));
-    }
-  }, []);
-
-  const toggleFavorite = (id: number) => {
-    const newFavorites = favorites.includes(id) 
-      ? favorites.filter(f => f !== id)
-      : [...favorites, id];
-    setFavorites(newFavorites);
-    localStorage.setItem('dua-favorites', JSON.stringify(newFavorites));
-  };
-
-  const copyToClipboard = (dua: typeof DUAS[0], type: 'full' | 'arabic' = 'full') => {
-    const text = type === 'full' 
-      ? `${dua.title}\n\n${dua.arabic}\n\n${dua.transliteration}\n\nMeaning: ${dua.meaning}`
-      : dua.arabic;
-    
-    navigator.clipboard.writeText(text).then(() => {
-      setCopiedId(dua.id);
-      setTimeout(() => setCopiedId(null), 2000);
-    });
-  };
-
-  const categories = ["All", "Daily", "Protection", "Forgiveness", "Knowledge", "Success", "Health", "Travel", "Family", "Patience", "Favorites"];
-
-  const filteredDuas = DUAS.filter(d => {
-    const matchesCategory = activeCategory === "All" || 
-                           (activeCategory === "Favorites" ? favorites.includes(d.id) : d.category === activeCategory);
-    const matchesSearch = d.title.toLowerCase().includes(search.toLowerCase()) || 
-                         d.meaning.toLowerCase().includes(search.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
-
-  const duaOfTheDay = useMemo(() => {
-    const day = new Date().getDate();
-    return DUAS[day % DUAS.length];
-  }, []);
-
-  return (
-    <div className="flex flex-col min-h-screen bg-[#fcfcfd] pb-24">
-      <header className="bg-white/80 backdrop-blur-xl border-b border-slate-100 p-6 z-50 shadow-sm overflow-hidden">
-        <IslamicPattern className="opacity-[0.03]" />
-        <div className="flex items-center justify-between mb-6 relative z-10">
-          <div className="flex items-center gap-4">
-            <motion.button 
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => navigate(-1)} 
-              className="p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-2xl transition-all"
-            >
-              <ChevronLeft size={22} />
-            </motion.button>
-            <h1 className="text-xl font-black text-slate-800 tracking-tight">Daily Supplications</h1>
-          </div>
-          <RubElHizb className="w-8 h-8 text-emerald-600/20 animate-spin-slow" />
-        </div>
-        
-        <div className="relative mb-6 z-10">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search 200+ duas..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full bg-slate-50/50 border border-slate-100 rounded-[20px] py-3.5 pl-12 pr-4 text-sm focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all font-medium"
-          />
-        </div>
-
-        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar relative z-10">
-          {categories.map(cat => (
-            <button 
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={cn(
-                "px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all relative",
-                activeCategory === cat ? "text-white" : "bg-slate-50 text-slate-400 hover:text-slate-600"
-              )}
-            >
-              {activeCategory === cat && (
-                <motion.div 
-                  layoutId="active-cat"
-                  className="absolute inset-0 bg-emerald-600 rounded-2xl shadow-lg shadow-emerald-100 -z-10"
-                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                />
-              )}
-              {cat}
-            </button>
-          ))}
-        </div>
-      </header>
-
-      <div className="p-6 space-y-8">
-        {/* Dua of the Day Highlight */}
-        {activeCategory === "All" && !search && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-emerald-900 rounded-[40px] p-8 text-white relative overflow-hidden shadow-2xl shadow-emerald-900/20 mb-8"
-          >
-            <div className="absolute inset-0 bg-islamic-pattern opacity-10" />
-            <div className="relative z-10">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-2 h-2 bg-emerald-400 rounded-full animate-pulse" />
-                <span className="text-[10px] font-black uppercase tracking-[0.3em] text-emerald-200">Dua of the Day</span>
-              </div>
-              <h2 className="text-2xl font-black mb-6 tracking-tight">{duaOfTheDay.title}</h2>
-              <p className="text-3xl font-arabic text-emerald-300 text-right leading-relaxed mb-6">{duaOfTheDay.arabic}</p>
-              <div className="flex gap-4">
-                <button 
-                  onClick={() => copyToClipboard(duaOfTheDay)}
-                  className="flex-1 bg-white/10 hover:bg-white/20 py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 backdrop-blur-md border border-white/10"
-                >
-                  <Copy size={16} /> Copy
-                </button>
-                <button 
-                  onClick={() => toggleFavorite(duaOfTheDay.id)}
-                  className={cn(
-                    "flex-1 py-3 rounded-2xl text-xs font-bold transition-all flex items-center justify-center gap-2 backdrop-blur-md border border-white/10",
-                    favorites.includes(duaOfTheDay.id) ? "bg-red-500/20 text-red-200" : "bg-white/10 hover:bg-white/20"
-                  )}
-                >
-                  <Heart size={16} fill={favorites.includes(duaOfTheDay.id) ? "currentColor" : "none"} /> Favorite
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        <AnimatePresence mode="popLayout">
-          <motion.div 
-            key={activeCategory}
-            initial="hidden"
-            animate="visible"
-            variants={{
-              visible: {
-                transition: {
-                  staggerChildren: 0.1
-                }
-              }
-            }}
-            className="space-y-6"
-          >
-            {filteredDuas.length > 0 ? (
-              filteredDuas.map((dua) => (
-                <motion.div 
-                  key={dua.id}
-                  variants={{
-                    hidden: { opacity: 0, scale: 0.95, y: 20 },
-                    visible: { opacity: 1, scale: 1, y: 0 }
-                  }}
-                  exit={{ opacity: 0, scale: 0.95, y: -20 }}
-                  whileHover={{ y: -4 }}
-                  className="bg-white p-6 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-md transition-all space-y-4 relative overflow-hidden group"
-                >
-                  <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-5 transition-opacity">
-                    <RubElHizb className="w-[120px] h-[120px]" />
-                  </div>
-                  
-                  <div className="flex justify-between items-start relative z-10">
-                    <div className="bg-emerald-50 text-emerald-600 px-3 py-1 rounded-lg text-[9px] font-bold uppercase tracking-widest">
-                      {dua.category}
-                    </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => toggleFavorite(dua.id)}
-                        className={cn(
-                          "p-2 rounded-full transition-colors",
-                          favorites.includes(dua.id) ? "bg-red-50 text-red-500" : "hover:bg-slate-50 text-slate-300"
-                        )}
-                      >
-                        <Heart size={16} fill={favorites.includes(dua.id) ? "currentColor" : "none"} />
-                      </button>
-                      <button className="p-2 hover:bg-slate-50 rounded-full text-slate-300 transition-colors"><Share2 size={16} /></button>
-                    </div>
-                  </div>
-
-                  <h3 className="text-lg font-black text-slate-800 relative z-10">{dua.title}</h3>
-                  
-                  <div className="bg-slate-50/50 p-6 rounded-[24px] border border-slate-50 relative z-10">
-                    <p className="text-2xl font-arabic text-emerald-600 text-right leading-relaxed mb-4">{dua.arabic}</p>
-                    <p className="text-xs text-slate-500 italic leading-relaxed mb-4">{dua.transliteration}</p>
-                    <div className="h-px bg-slate-100 mb-4" />
-                    <p className="text-xs text-slate-600 font-medium leading-relaxed">{dua.meaning}</p>
-                  </div>
-
-                  <div className="flex gap-4 pt-2 relative z-10">
-                    <button 
-                      onClick={() => copyToClipboard(dua)}
-                      className={cn(
-                        "flex-1 py-3 rounded-2xl text-xs font-bold shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2",
-                        copiedId === dua.id ? "bg-emerald-100 text-emerald-700" : "bg-emerald-600 text-white shadow-emerald-100"
-                      )}
-                    >
-                      {copiedId === dua.id ? <Check size={16} /> : <Copy size={16} />}
-                      {copiedId === dua.id ? "Copied!" : "Copy Text"}
-                    </button>
-                    <button 
-                      onClick={() => toggleFavorite(dua.id)}
-                      className={cn(
-                        "flex-1 py-3 rounded-2xl text-xs font-bold active:scale-95 transition-all flex items-center justify-center gap-2",
-                        favorites.includes(dua.id) ? "bg-red-50 text-red-600" : "bg-slate-50 text-slate-600"
-                      )}
-                    >
-                      <Heart size={16} fill={favorites.includes(dua.id) ? "currentColor" : "none"} />
-                      {favorites.includes(dua.id) ? "Favorited" : "Favorite"}
-                    </button>
-                  </div>
-                </motion.div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-                <Bookmark size={48} className="mb-4 opacity-20" />
-                <p className="text-sm font-medium">No duas found</p>
-              </div>
-            )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
-    </div>
-  );
-}
