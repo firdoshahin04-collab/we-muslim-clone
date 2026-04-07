@@ -4,6 +4,7 @@ import { usePrayer } from './PrayerProvider';
 import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
+import { useNavigate } from 'react-router-dom';
 import { RubElHizb, CrescentStar, IslamicPattern } from './DecorativeIcons';
 
 export default function Home() {

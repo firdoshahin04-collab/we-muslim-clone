@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Play, Pause, Volume2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 
 interface Ayah {
@@ -34,7 +34,8 @@ export default function SurahView() {
   const [translation, setTranslation] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [volume, setVolume] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
@@ -104,16 +105,22 @@ export default function SurahView() {
     if (urduAudioUrl.startsWith('http:')) urduAudioUrl = urduAudioUrl.replace('http:', 'https:');
 
     const urduAudio = new Audio(urduAudioUrl);
+    urduAudio.volume = volume;
     audioRef.current = urduAudio;
     setPlayingAyah(ayah.number);
     setIsReadingTranslation(true);
+    setIsPlaying(true);
+    
     urduAudio.play().catch(err => {
       console.error("Urdu audio play failed, falling back to TTS:", err);
       const utterance = new SpeechSynthesisUtterance(transAyah.text);
       utterance.lang = 'ur-PK';
+      utterance.volume = volume;
+      utterance.onstart = () => setIsPlaying(true);
       utterance.onend = () => {
         setPlayingAyah(null);
         setIsReadingTranslation(false);
+        setIsPlaying(false);
       };
       window.speechSynthesis.speak(utterance);
     });
@@ -121,7 +128,11 @@ export default function SurahView() {
     urduAudio.onended = () => {
       setPlayingAyah(null);
       setIsReadingTranslation(false);
+      setIsPlaying(false);
     };
+
+    urduAudio.onpause = () => setIsPlaying(false);
+    urduAudio.onplay = () => setIsPlaying(true);
   };
 
   const playSequentialAudio = async (ayahIndex: number) => {
@@ -134,17 +145,23 @@ export default function SurahView() {
       audioRef.current.pause();
       if (playingAyah === ayah.number && !isReadingTranslation) {
         setPlayingAyah(null);
+        setIsPlaying(false);
         return;
       }
     }
 
     // Play Arabic first
     const arabicAudio = new Audio(ayah.audio);
+    arabicAudio.volume = volume;
     audioRef.current = arabicAudio;
     setPlayingAyah(ayah.number);
     setIsReadingTranslation(false);
+    setIsPlaying(true);
     
     arabicAudio.play().catch(err => console.error("Arabic audio play failed:", err));
+
+    arabicAudio.onpause = () => setIsPlaying(false);
+    arabicAudio.onplay = () => setIsPlaying(true);
 
     arabicAudio.onended = () => {
       // After Arabic, play Jalandhari Urdu Audio immediately
@@ -156,16 +173,21 @@ export default function SurahView() {
       if (urduAudioUrl.startsWith('http:')) urduAudioUrl = urduAudioUrl.replace('http:', 'https:');
       
       const urduAudio = new Audio(urduAudioUrl);
+      urduAudio.volume = volume;
       audioRef.current = urduAudio;
       setIsReadingTranslation(true);
+      setIsPlaying(true);
       
       urduAudio.play().catch(err => {
         console.error("Urdu audio play failed, falling back to TTS:", err);
         const utterance = new SpeechSynthesisUtterance(transAyah.text);
         utterance.lang = 'ur-PK';
+        utterance.volume = volume;
+        utterance.onstart = () => setIsPlaying(true);
         utterance.onend = () => {
           setPlayingAyah(null);
           setIsReadingTranslation(false);
+          setIsPlaying(false);
         };
         window.speechSynthesis.speak(utterance);
       });
@@ -173,8 +195,29 @@ export default function SurahView() {
       urduAudio.onended = () => {
         setPlayingAyah(null);
         setIsReadingTranslation(false);
+        setIsPlaying(false);
       };
+
+      urduAudio.onpause = () => setIsPlaying(false);
+      urduAudio.onplay = () => setIsPlaying(true);
     };
+  };
+
+  const togglePlayback = () => {
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.pause();
+    } else {
+      audioRef.current.play();
+    }
+  };
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    if (audioRef.current) {
+      audioRef.current.volume = newVolume;
+    }
   };
 
   if (loading) return (
@@ -354,6 +397,48 @@ export default function SurahView() {
         </div>
       </div>
       
+      {/* Audio Controls Bar */}
+      <AnimatePresence>
+        {playingAyah && (
+          <motion.div 
+            initial={{ y: 100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 100, opacity: 0 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] glass rounded-[32px] p-4 flex items-center gap-4 z-[60] shadow-2xl border border-white/40"
+          >
+            <motion.button 
+              whileTap={{ scale: 0.9 }}
+              onClick={togglePlayback}
+              className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-200 shrink-0"
+            >
+              {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
+            </motion.button>
+            
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest truncate">
+                {isReadingTranslation ? "Urdu Translation" : "Arabic Recitation"}
+              </p>
+              <p className="text-xs font-black text-slate-800 truncate">
+                Ayah {surah.ayahs.find(a => a.number === playingAyah)?.numberInSurah} of {surah.englishName}
+              </p>
+            </div>
+
+            <div className="flex items-center gap-2 group relative">
+              <Volume2 size={18} className="text-slate-400" />
+              <input 
+                type="range" 
+                min="0" 
+                max="1" 
+                step="0.01" 
+                value={volume}
+                onChange={handleVolumeChange}
+                className="w-16 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer accent-emerald-600"
+              />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div 
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
