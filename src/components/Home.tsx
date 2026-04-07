@@ -4,7 +4,7 @@ import { usePrayer } from './PrayerProvider';
 import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
-import { useNavigate } from 'react-router-dom';
+import { RubElHizb, CrescentStar, IslamicPattern } from './DecorativeIcons';
 
 export default function Home() {
   const { times, location } = usePrayer();
@@ -36,15 +36,18 @@ export default function Home() {
 
   return (
     <div className="flex flex-col gap-6 p-6 bg-[#f8f9fb] min-h-full pb-24">
-      <header className="flex justify-between items-center mb-2">
+      <header className="flex justify-between items-center mb-2 relative">
         <div className="flex flex-col gap-0.5">
-          <motion.h1 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="text-3xl font-black text-slate-800 tracking-tight"
-          >
-            Assalamu Alaikum
-          </motion.h1>
+          <div className="flex items-center gap-2">
+            <RubElHizb className="w-5 h-5 text-emerald-600 animate-pulse" />
+            <motion.h1 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-3xl font-black text-slate-800 tracking-tight"
+            >
+              Assalamu Alaikum
+            </motion.h1>
+          </div>
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -179,12 +182,15 @@ export default function Home() {
             whileHover={{ scale: 1.02, x: 4 }}
             whileTap={{ scale: 0.98 }}
             className={cn(
-              "flex justify-between items-center p-5 rounded-[32px] border transition-all duration-500 group cursor-pointer",
+              "flex justify-between items-center p-5 rounded-[32px] border transition-all duration-500 group cursor-pointer relative overflow-hidden",
               currentPrayer.toLowerCase() === prayer.name.toLowerCase() 
                 ? "bg-white border-emerald-100 shadow-xl shadow-emerald-900/5 ring-1 ring-emerald-50" 
                 : "bg-white/40 border-transparent hover:bg-white hover:border-slate-100"
             )}
           >
+            {currentPrayer.toLowerCase() === prayer.name.toLowerCase() && (
+              <div className="absolute inset-0 animate-shimmer pointer-events-none" />
+            )}
 
             <div className="flex items-center gap-5">
               <div className={cn(

@@ -4,6 +4,7 @@ import { GoogleGenAI } from "@google/genai";
 import Markdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { CrescentStar, IslamicPattern } from './DecorativeIcons';
 
 export default function Nearby() {
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -85,22 +86,25 @@ export default function Nearby() {
 
   return (
     <div className="p-5 flex flex-col gap-6 h-full bg-[#f8f9fb]">
-      <header className="flex flex-col gap-1">
-        <motion.h1 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-2xl font-black text-slate-800 tracking-tight"
-        >
-          Nearby Services
-        </motion.h1>
-        <motion.p 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="text-slate-400 text-[11px] font-bold uppercase tracking-widest"
-        >
-          Real-time results near your location
-        </motion.p>
+      <header className="flex justify-between items-start relative">
+        <div className="relative z-10">
+          <motion.h1 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-2xl font-black text-slate-800 tracking-tight"
+          >
+            Nearby Services
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-slate-400 text-[11px] font-bold uppercase tracking-widest"
+          >
+            Real-time results near your location
+          </motion.p>
+        </div>
+        <CrescentStar className="w-10 h-10 text-emerald-600/20 animate-float" />
       </header>
 
       {/* Tabs */}

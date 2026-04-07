@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Book, Search, Play, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { RubElHizb, IslamicPattern } from './DecorativeIcons';
 
 interface Surah {
   number: number;
@@ -42,22 +43,25 @@ export default function Quran() {
           transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           className="absolute inset-0 bg-islamic-pattern opacity-10" 
         />
-        <div className="relative z-10">
-          <motion.h1 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-black tracking-tight mb-2"
-          >
-            The Holy Quran
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-emerald-400 text-[11px] font-bold uppercase tracking-[0.2em]"
-          >
-            Read and listen to the divine words
-          </motion.p>
+        <div className="relative z-10 flex items-center justify-between w-full">
+          <div>
+            <motion.h1 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-3xl font-black tracking-tight mb-2"
+            >
+              The Holy Quran
+            </motion.h1>
+            <motion.p 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-emerald-400 text-[11px] font-bold uppercase tracking-[0.2em]"
+            >
+              Read and listen to the divine words
+            </motion.p>
+          </div>
+          <RubElHizb className="w-12 h-12 text-emerald-500/50 animate-float" />
         </div>
         <motion.div 
           animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}

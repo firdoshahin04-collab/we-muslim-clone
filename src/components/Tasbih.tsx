@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { RotateCcw, Fingerprint, ChevronLeft, ChevronRight, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence, useAnimation } from 'motion/react';
 import { cn } from '../lib/utils';
+import { RubElHizb, IslamicPattern } from './DecorativeIcons';
 
 const TASBIHS = [
   { name: 'SubhanAllah', arabic: 'سُبْحَانَ ٱللَّٰهِ', translation: 'Glory be to Allah' },
@@ -70,14 +71,29 @@ export default function Tasbih() {
       <header className="p-5 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-50">
         <div className="flex items-center gap-3">
           <motion.div 
-            whileHover={{ scale: 1.1 }}
-            className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-inner"
+            initial={{ opacity: 0, scale: 0.8, rotate: -45 }}
+            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            whileHover={{ scale: 1.1, rotate: 90 }}
+            className="w-12 h-12 rounded-2xl bg-emerald-50 flex items-center justify-center text-emerald-600 shadow-inner group"
           >
-            <Fingerprint size={24} />
+            <RubElHizb className="w-6 h-6 group-hover:text-emerald-500 transition-colors" />
           </motion.div>
           <div>
-            <h2 className="text-base font-black text-slate-800 tracking-tight">Dhikr Session</h2>
-            <p className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em]">Active Now</p>
+            <motion.h2 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="text-base font-black text-slate-800 tracking-tight"
+            >
+              Dhikr Session
+            </motion.h2>
+            <motion.p 
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="text-[10px] text-emerald-600 font-black uppercase tracking-[0.2em]"
+            >
+              Active Now
+            </motion.p>
           </div>
         </div>
         <div className="flex gap-2">

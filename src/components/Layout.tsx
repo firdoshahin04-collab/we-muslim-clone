@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Compass, MapPin, Settings, Fingerprint, List } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { IslamicPattern } from './DecorativeIcons';
 
 interface LayoutProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ export default function Layout({ children }: LayoutProps) {
 
   return (
     <div className="h-screen bg-[#f8f9fb] flex flex-col max-w-md mx-auto shadow-2xl border-x border-slate-200/50 overflow-hidden relative">
+      <IslamicPattern className="opacity-[0.02]" />
       {/* Subtle background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/30 to-transparent pointer-events-none" />
       

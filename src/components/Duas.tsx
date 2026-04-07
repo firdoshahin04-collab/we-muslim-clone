@@ -3,6 +3,7 @@ import { ChevronLeft, Search, Heart, Share2, Copy, Bookmark } from 'lucide-react
 import { motion, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../lib/utils';
+import { RubElHizb, IslamicPattern } from './DecorativeIcons';
 
 const DUAS = [
   { 
@@ -45,12 +46,16 @@ export default function Duas() {
 
   return (
     <div className="flex flex-col h-full bg-[#fcfcfd]">
-      <header className="p-6 bg-white sticky top-0 z-10 border-b border-slate-100">
-        <div className="flex items-center gap-4 mb-6">
-          <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
-            <ChevronLeft size={24} className="text-slate-800" />
-          </button>
-          <h1 className="text-xl font-black text-slate-800">Daily Duas</h1>
+      <header className="p-6 bg-white sticky top-0 z-10 border-b border-slate-100 relative overflow-hidden">
+        <IslamicPattern className="opacity-[0.03]" />
+        <div className="flex items-center justify-between mb-6 relative z-10">
+          <div className="flex items-center gap-4">
+            <button onClick={() => navigate(-1)} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
+              <ChevronLeft size={24} className="text-slate-800" />
+            </button>
+            <h1 className="text-xl font-black text-slate-800">Daily Duas</h1>
+          </div>
+          <RubElHizb className="w-8 h-8 text-emerald-600/20 animate-spin-slow" />
         </div>
         
         <div className="relative mb-6">
