@@ -14,10 +14,8 @@ export default function Layout({ children }: LayoutProps) {
   const navItems = [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/quran', icon: BookOpen, label: 'Quran' },
-    { to: '/duas', icon: Heart, label: 'Duas' },
     { to: '/para', icon: List, label: 'Para' },
     { to: '/qibla', icon: Compass, label: 'Qibla' },
-    { to: '/tasbih', icon: Fingerprint, label: 'Tasbih' },
     { to: '/nearby', icon: MapPin, label: 'Nearby' },
     { to: '/settings', icon: Settings, label: 'Settings' },
   ];

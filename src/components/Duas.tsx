@@ -857,8 +857,8 @@ export default function Duas() {
   }, []);
 
   return (
-    <div className="flex flex-col h-full bg-[#fcfcfd]">
-      <header className="p-6 bg-white sticky top-0 z-10 border-b border-slate-100 relative overflow-hidden">
+    <div className="flex flex-col min-h-full bg-[#fcfcfd]">
+      <header className="p-6 bg-white border-b border-slate-100 relative overflow-hidden">
         <IslamicPattern className="opacity-[0.03]" />
         <div className="flex items-center justify-between mb-6 relative z-10">
           <div className="flex items-center gap-4">
@@ -904,7 +904,7 @@ export default function Duas() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 pb-24">
+      <div className="p-6 space-y-6 pb-10">
         {/* Dua of the Day Highlight */}
         {activeCategory === "All" && !search && (
           <motion.div 
