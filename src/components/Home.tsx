@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -155,6 +155,39 @@ export default function Home() {
           className="absolute -left-20 -bottom-20 w-64 h-64 bg-emerald-900/40 rounded-full blur-[80px]" 
         />
       </motion.div>
+
+      {/* Quick Actions */}
+      <div className="grid grid-cols-2 gap-4">
+        <motion.button
+          whileHover={{ y: -4, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate('/duas')}
+          className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group"
+        >
+          <div className="w-12 h-12 bg-red-50 text-red-500 rounded-2xl flex items-center justify-center group-hover:bg-red-500 group-hover:text-white transition-all">
+            <Heart size={24} fill="currentColor" />
+          </div>
+          <div className="text-left">
+            <p className="font-black text-slate-800 tracking-tight">Daily Duas</p>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Supplications</p>
+          </div>
+        </motion.button>
+
+        <motion.button
+          whileHover={{ y: -4, scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={() => navigate('/tasbih')}
+          className="bg-white p-6 rounded-[40px] border border-slate-100 shadow-sm flex flex-col gap-3 group"
+        >
+          <div className="w-12 h-12 bg-emerald-50 text-emerald-500 rounded-2xl flex items-center justify-center group-hover:bg-emerald-500 group-hover:text-white transition-all">
+            <Fingerprint size={24} />
+          </div>
+          <div className="text-left">
+            <p className="font-black text-slate-800 tracking-tight">Tasbih</p>
+            <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">Dhikr Counter</p>
+          </div>
+        </motion.button>
+      </div>
 
       <motion.section 
         initial="hidden"

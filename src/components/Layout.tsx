@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Compass, MapPin, Settings, Fingerprint, List } from 'lucide-react';
+import { Home, BookOpen, Compass, MapPin, Settings, Fingerprint, List, Heart } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { IslamicPattern } from './DecorativeIcons';
@@ -14,6 +14,7 @@ export default function Layout({ children }: LayoutProps) {
   const navItems = [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/quran', icon: BookOpen, label: 'Quran' },
+    { to: '/duas', icon: Heart, label: 'Duas' },
     { to: '/para', icon: List, label: 'Para' },
     { to: '/qibla', icon: Compass, label: 'Qibla' },
     { to: '/tasbih', icon: Fingerprint, label: 'Tasbih' },

@@ -9,6 +9,7 @@ import Qibla from './components/Qibla';
 import Nearby from './components/Nearby';
 import Tasbih from './components/Tasbih';
 import Settings from './components/Settings';
+import Duas from './components/Duas';
 import { PrayerProvider } from './components/PrayerProvider';
 
 function AnimatedRoutes() {
@@ -24,6 +25,7 @@ function AnimatedRoutes() {
         <Route path="/qibla" element={<PageWrapper><Qibla /></PageWrapper>} />
         <Route path="/tasbih" element={<PageWrapper><Tasbih /></PageWrapper>} />
         <Route path="/nearby" element={<PageWrapper><Nearby /></PageWrapper>} />
+        <Route path="/duas" element={<PageWrapper><Duas /></PageWrapper>} />
         <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
