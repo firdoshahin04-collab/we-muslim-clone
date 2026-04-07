@@ -32,6 +32,7 @@ export default function SurahView() {
   const navigate = useNavigate();
   const [surah, setSurah] = useState<SurahDetail | null>(null);
   const [translation, setTranslation] = useState<any>(null);
+  const [urduAudioData, setUrduAudioData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -52,14 +53,18 @@ export default function SurahView() {
     const fetchSurah = async () => {
       setLoading(true);
       try {
-        const [arabicRes, transRes] = await Promise.all([
+        const [arabicRes, transRes, urduAudioRes] = await Promise.all([
           fetch(`https://api.alquran.cloud/v1/surah/${number}/ar.alafasy`),
-          fetch(`https://api.alquran.cloud/v1/surah/${number}/ur.jalandhry`) // Maulana Jalandhari Urdu Translation
+          fetch(`https://api.alquran.cloud/v1/surah/${number}/ur.jalandhry`),
+          fetch(`https://api.alquran.cloud/v1/surah/${number}/ur.khan`) // Reliable Urdu Audio
         ]);
         const arabicData = await arabicRes.json();
         const transData = await transRes.json();
+        const urduAudioData = await urduAudioRes.json();
+        
         setSurah(arabicData.data);
         setTranslation(transData.data);
+        setUrduAudioData(urduAudioData.data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -99,7 +104,11 @@ export default function SurahView() {
 
     const surahNum = String(surah.number).padStart(3, '0');
     const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
-    let urduAudioUrl = transAyah.audio || `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
+    
+    // Try to get audio from ur.khan edition first, then fallback to everyayah, then TTS
+    let urduAudioUrl = urduAudioData?.ayahs[ayahIndex]?.audio || 
+                      transAyah.audio || 
+                      `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
     
     // Ensure https
     if (urduAudioUrl.startsWith('http:')) urduAudioUrl = urduAudioUrl.replace('http:', 'https:');
@@ -111,8 +120,8 @@ export default function SurahView() {
     setIsReadingTranslation(true);
     setIsPlaying(true);
     
-    urduAudio.play().catch(err => {
-      console.error("Urdu audio play failed, falling back to TTS:", err);
+    const handleFallback = () => {
+      console.log("Urdu audio failed, using TTS fallback...");
       const utterance = new SpeechSynthesisUtterance(transAyah.text);
       utterance.lang = 'ur-PK';
       utterance.volume = volume;
@@ -123,7 +132,17 @@ export default function SurahView() {
         setIsPlaying(false);
       };
       window.speechSynthesis.speak(utterance);
+    };
+
+    urduAudio.play().catch(err => {
+      console.error("Urdu audio play failed:", err);
+      handleFallback();
     });
+
+    urduAudio.onerror = () => {
+      console.error("Urdu audio load failed");
+      handleFallback();
+    };
 
     urduAudio.onended = () => {
       setPlayingAyah(null);
@@ -167,7 +186,11 @@ export default function SurahView() {
       // After Arabic, play Jalandhari Urdu Audio immediately
       const surahNum = String(surah.number).padStart(3, '0');
       const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
-      let urduAudioUrl = transAyah.audio || `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
+      
+      // Try to get audio from ur.khan edition first, then fallback to everyayah, then TTS
+      let urduAudioUrl = urduAudioData?.ayahs[ayahIndex]?.audio || 
+                        transAyah.audio || 
+                        `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
       
       // Ensure https
       if (urduAudioUrl.startsWith('http:')) urduAudioUrl = urduAudioUrl.replace('http:', 'https:');
@@ -178,8 +201,8 @@ export default function SurahView() {
       setIsReadingTranslation(true);
       setIsPlaying(true);
       
-      urduAudio.play().catch(err => {
-        console.error("Urdu audio play failed, falling back to TTS:", err);
+      const handleFallback = () => {
+        console.log("Urdu audio failed, using TTS fallback...");
         const utterance = new SpeechSynthesisUtterance(transAyah.text);
         utterance.lang = 'ur-PK';
         utterance.volume = volume;
@@ -190,7 +213,17 @@ export default function SurahView() {
           setIsPlaying(false);
         };
         window.speechSynthesis.speak(utterance);
+      };
+
+      urduAudio.play().catch(err => {
+        console.error("Urdu audio play failed:", err);
+        handleFallback();
       });
+
+      urduAudio.onerror = () => {
+        console.error("Urdu audio load failed");
+        handleFallback();
+      };
 
       urduAudio.onended = () => {
         setPlayingAyah(null);
