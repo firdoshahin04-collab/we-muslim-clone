@@ -104,23 +104,37 @@ export default function Nearby() {
       </header>
 
       {/* Tabs */}
-      <div className="flex p-1.5 bg-slate-100 rounded-[20px] shadow-inner">
+      <div className="flex p-1.5 bg-slate-100 rounded-[20px] shadow-inner relative">
         <button 
           onClick={() => setActiveTab('mosque')}
           className={cn(
-            "flex-1 py-3 rounded-[16px] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
-            activeTab === 'mosque' ? "bg-white text-emerald-600 shadow-md" : "text-slate-400 hover:text-slate-600"
+            "flex-1 py-3 rounded-[16px] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative z-10",
+            activeTab === 'mosque' ? "text-emerald-600" : "text-slate-400 hover:text-slate-600"
           )}
         >
+          {activeTab === 'mosque' && (
+            <motion.div 
+              layoutId="active-tab"
+              className="absolute inset-0 bg-white rounded-[16px] shadow-md -z-10"
+              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+            />
+          )}
           <Building2 size={16} /> Mosques
         </button>
         <button 
           onClick={() => setActiveTab('halal')}
           className={cn(
-            "flex-1 py-3 rounded-[16px] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2",
-            activeTab === 'halal' ? "bg-white text-emerald-600 shadow-md" : "text-slate-400 hover:text-slate-600"
+            "flex-1 py-3 rounded-[16px] text-[11px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 relative z-10",
+            activeTab === 'halal' ? "text-emerald-600" : "text-slate-400 hover:text-slate-600"
           )}
         >
+          {activeTab === 'halal' && (
+            <motion.div 
+              layoutId="active-tab"
+              className="absolute inset-0 bg-white rounded-[16px] shadow-md -z-10"
+              transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+            />
+          )}
           <Store size={16} /> Halal Food
         </button>
       </div>
@@ -144,17 +158,25 @@ export default function Nearby() {
           ) : (
             <motion.div 
               key="results"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: {
+                  transition: {
+                    staggerChildren: 0.1
+                  }
+                }
+              }}
               className="space-y-4 pb-10"
             >
               {results.map((place, i) => (
                   <motion.div 
                     key={i}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    whileHover={{ y: -2 }}
+                    variants={{
+                      hidden: { opacity: 0, y: 20 },
+                      visible: { opacity: 1, y: 0 }
+                    }}
+                    whileHover={{ y: -2, scale: 1.01 }}
                     className="bg-white p-5 rounded-[32px] border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all group"
                   >
                     <div className="flex justify-between items-start mb-2">

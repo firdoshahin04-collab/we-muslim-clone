@@ -1,14 +1,15 @@
 import { ReactNode } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { Home, BookOpen, Compass, MapPin, Settings, Fingerprint, List } from 'lucide-react';
 import { cn } from '../lib/utils';
-import { motion } from 'motion/react';
+import { motion, AnimatePresence } from 'motion/react';
 
 interface LayoutProps {
   children: ReactNode;
 }
 
 export default function Layout({ children }: LayoutProps) {
+  const location = useLocation();
   const navItems = [
     { to: '/', icon: Home, label: 'Home' },
     { to: '/quran', icon: BookOpen, label: 'Quran' },
@@ -24,8 +25,39 @@ export default function Layout({ children }: LayoutProps) {
       {/* Subtle background gradient */}
       <div className="absolute inset-0 bg-gradient-to-b from-emerald-50/30 to-transparent pointer-events-none" />
       
+      {/* Animated Background Blobs */}
+      <motion.div 
+        animate={{ 
+          scale: [1, 1.2, 1],
+          x: [0, 20, 0],
+          y: [0, -20, 0]
+        }}
+        transition={{ duration: 10, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute -top-20 -right-20 w-64 h-64 bg-emerald-100/20 rounded-full blur-3xl pointer-events-none"
+      />
+      <motion.div 
+        animate={{ 
+          scale: [1.2, 1, 1.2],
+          x: [0, -30, 0],
+          y: [0, 30, 0]
+        }}
+        transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
+        className="absolute bottom-40 -left-20 w-80 h-80 bg-blue-100/10 rounded-full blur-3xl pointer-events-none"
+      />
+
       <main className="flex-1 overflow-y-auto pb-24 scroll-smooth relative z-10">
-        {children}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.98 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="min-h-full"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
       
       <nav className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[400px] glass rounded-[32px] px-2 py-2 flex justify-between items-center z-50 shadow-2xl shadow-emerald-900/10 border border-white/40">

@@ -35,6 +35,17 @@ export default function SurahView() {
   const [loading, setLoading] = useState(true);
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
   const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const totalHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (window.scrollY / totalHeight) * 100;
+      setScrollProgress(progress);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchSurah = async () => {
@@ -178,6 +189,13 @@ export default function SurahView() {
   return (
     <div className="flex flex-col min-h-screen bg-[#fcfcfd] pb-24">
       <header className="sticky top-0 bg-white/80 backdrop-blur-xl border-b border-slate-100 p-5 flex items-center gap-4 z-50 shadow-sm">
+        <motion.div 
+          className="absolute bottom-0 left-0 h-1 bg-emerald-500 z-50"
+          style={{ width: `${scrollProgress}%` }}
+          initial={{ width: 0 }}
+          animate={{ width: `${scrollProgress}%` }}
+          transition={{ type: "spring", bounce: 0, duration: 0.1 }}
+        />
         <motion.button 
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
@@ -216,7 +234,14 @@ export default function SurahView() {
         {surah.number !== 1 && surah.number !== 9 && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
+            animate={{ 
+              opacity: 1, 
+              y: [0, -10, 0],
+            }}
+            transition={{ 
+              opacity: { duration: 0.6 },
+              y: { duration: 4, repeat: Infinity, ease: "easeInOut" }
+            }}
             className="text-center py-16 bg-white rounded-[48px] border border-slate-100 shadow-sm relative overflow-hidden group"
           >
             <div className="absolute inset-0 bg-islamic-pattern opacity-5 scale-125" />

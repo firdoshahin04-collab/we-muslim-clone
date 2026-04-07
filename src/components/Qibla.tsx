@@ -68,10 +68,27 @@ export default function Qibla() {
   }, []);
 
   return (
-    <div className="p-4 flex flex-col gap-4 items-center h-full bg-[#fcfcfd]">
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="p-4 flex flex-col gap-4 items-center h-full bg-[#fcfcfd]"
+    >
       <header className="w-full">
-        <h1 className="text-xl font-bold text-slate-800">Qibla Direction</h1>
-        <p className="text-slate-500 text-xs">Accurate direction towards the Kaaba</p>
+        <motion.h1 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          className="text-xl font-bold text-slate-800"
+        >
+          Qibla Direction
+        </motion.h1>
+        <motion.p 
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-slate-500 text-xs"
+        >
+          Accurate direction towards the Kaaba
+        </motion.p>
       </header>
 
       <div className="flex-1 flex flex-col items-center justify-center gap-6 w-full">
@@ -101,10 +118,16 @@ export default function Qibla() {
           <div className="relative flex flex-col items-center gap-8">
             <div className="relative w-64 h-64 flex items-center justify-center">
               {/* Outer Ring with Glow */}
-              <div className={cn(
-                "absolute inset-0 border-[10px] border-white rounded-full shadow-2xl transition-all duration-500",
-                qibla && Math.abs(heading - qibla) < 5 ? "shadow-emerald-400/50 scale-105" : "shadow-slate-200"
-              )} />
+              <motion.div 
+                animate={{ 
+                  borderColor: qibla && Math.abs(heading - qibla) < 5 ? "#10b981" : "#ffffff",
+                  boxShadow: qibla && Math.abs(heading - qibla) < 5 
+                    ? "0 0 40px rgba(16,185,129,0.4), inset 0 0 20px rgba(16,185,129,0.2)" 
+                    : "0 10px 30px rgba(0,0,0,0.05)",
+                  scale: qibla && Math.abs(heading - qibla) < 5 ? 1.05 : 1
+                }}
+                className="absolute inset-0 border-[10px] rounded-full transition-all duration-500" 
+              />
               <div className="absolute inset-0 border border-slate-100 rounded-full" />
               
               {/* Compass Markings */}
@@ -186,7 +209,12 @@ export default function Qibla() {
           </div>
         )}
 
-        <div className="bg-white p-5 rounded-[32px] border border-slate-100 shadow-sm w-full max-w-sm">
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-white p-5 rounded-[32px] border border-slate-100 shadow-sm w-full max-w-sm"
+        >
           <h3 className="text-sm font-black text-slate-800 mb-4 flex items-center gap-2 uppercase tracking-widest">
             <Info size={16} className="text-emerald-600" />
             Accuracy Guide
@@ -248,8 +276,8 @@ export default function Qibla() {
               <p className="text-[11px] text-slate-500 font-bold leading-tight">Stay away from large metal objects or magnets.</p>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
-    </div>
+    </motion.div>
   );
 }

@@ -33,8 +33,15 @@ export default function Quran() {
 
   return (
     <div className="p-5 flex flex-col gap-6 bg-[#f8f9fb] min-h-full pb-24">
-      <header className="relative overflow-hidden rounded-[32px] p-8 bg-slate-900 text-white shadow-2xl shadow-slate-200">
-        <div className="absolute inset-0 bg-islamic-pattern opacity-10 scale-150" />
+      <header className="relative overflow-hidden rounded-[32px] p-8 bg-slate-900 text-white shadow-2xl shadow-slate-200 group">
+        <motion.div 
+          animate={{ 
+            backgroundPosition: ["0% 0%", "100% 100%"],
+            scale: [1.5, 1.6, 1.5]
+          }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 bg-islamic-pattern opacity-10" 
+        />
         <div className="relative z-10">
           <motion.h1 
             initial={{ opacity: 0, y: -10 }}
@@ -52,7 +59,11 @@ export default function Quran() {
             Read and listen to the divine words
           </motion.p>
         </div>
-        <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500/20 rounded-full blur-3xl" />
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.3, 0.2] }}
+          transition={{ duration: 5, repeat: Infinity }}
+          className="absolute -right-10 -bottom-10 w-40 h-40 bg-emerald-500 rounded-full blur-3xl" 
+        />
       </header>
 
       <motion.div 
@@ -71,31 +82,47 @@ export default function Quran() {
         />
       </motion.div>
 
-      <div className="grid grid-cols-1 gap-4">
+      <motion.div 
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: {
+            transition: {
+              staggerChildren: 0.05
+            }
+          }
+        }}
+        className="grid grid-cols-1 gap-4"
+      >
         {loading ? (
           Array(10).fill(0).map((_, i) => (
             <div key={i} className="h-24 bg-white border border-slate-100 rounded-[32px] animate-pulse" />
           ))
         ) : (
-          filteredSurahs.map((surah, i) => (
+          filteredSurahs.map((surah) => (
             <Link 
               key={surah.number}
               to={`/quran/${surah.number}`}
             >
               <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 + (i % 8) * 0.05 }}
+                variants={{
+                  hidden: { opacity: 0, y: 20 },
+                  visible: { opacity: 1, y: 0 }
+                }}
                 whileHover={{ y: -4, scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="bg-white p-5 rounded-[32px] border border-slate-100 flex justify-between items-center shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 hover:border-emerald-100 transition-all cursor-pointer group relative overflow-hidden"
+                className="bg-white p-5 rounded-[32px] border border-slate-100 flex justify-between items-center shadow-sm hover:shadow-xl hover:shadow-emerald-900/5 hover:border-emerald-100 transition-all cursor-pointer group relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-emerald-50/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
                 <div className="flex items-center gap-5 relative z-10">
-                  <div className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-[20px] flex items-center justify-center font-black text-sm shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-500">
+                  <motion.div 
+                    whileHover={{ rotate: 360 }}
+                    transition={{ duration: 0.8 }}
+                    className="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-[20px] flex items-center justify-center font-black text-sm shadow-inner group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-500"
+                  >
                     {surah.number}
-                  </div>
+                  </motion.div>
                   <div>
                     <h3 className="font-black text-base text-slate-800 group-hover:text-emerald-700 transition-colors tracking-tight">{surah.englishName}</h3>
                     <div className="flex items-center gap-2 mt-1">
@@ -118,7 +145,7 @@ export default function Quran() {
             </Link>
           ))
         )}
-      </div>
+      </motion.div>
     </div>
   );
 }

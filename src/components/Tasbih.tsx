@@ -18,11 +18,17 @@ export default function Tasbih() {
   const [target, setTarget] = useState(33);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [beads, setBeads] = useState(Array.from({ length: 10 }, (_, i) => i));
+  const [particles, setParticles] = useState<{ id: number, x: number, y: number }[]>([]);
   const controls = useAnimation();
 
-  const handleIncrement = () => {
+  const handleIncrement = (e: React.MouseEvent | React.TouchEvent) => {
     setCount(prev => prev + 1);
     
+    // Add particle
+    const id = Date.now();
+    setParticles(prev => [...prev, { id, x: Math.random() * 40 - 20, y: Math.random() * 40 - 20 }]);
+    setTimeout(() => setParticles(prev => prev.filter(p => p.id !== id)), 1000);
+
     // Animate beads
     controls.start({
       x: -40,
@@ -162,14 +168,27 @@ export default function Tasbih() {
         animate={{ y: 0 }}
         className="p-10 bg-white rounded-t-[64px] shadow-[0_-20px_50px_rgba(0,0,0,0.08)] flex flex-col items-center gap-8"
       >
-        <div className="text-center">
+        <div className="text-center relative">
+          <AnimatePresence>
+            {count > 0 && count % target === 0 && (
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 2 }}
+                exit={{ opacity: 0, scale: 3 }}
+                className="absolute inset-0 bg-emerald-400/20 rounded-full blur-2xl -z-10"
+              />
+            )}
+          </AnimatePresence>
           <motion.span 
             key={count}
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="text-7xl font-black text-slate-800 tracking-tighter"
+            className={cn(
+              "text-7xl font-black tracking-tighter transition-colors duration-300",
+              count > 0 && count % target === 0 ? "text-emerald-600" : "text-slate-800"
+            )}
           >
-            {count % target}
+            {count % target === 0 && count > 0 ? target : count % target}
           </motion.span>
           <span className="text-3xl text-slate-200 font-black ml-3 tracking-tighter">/ {target}</span>
         </div>
@@ -180,6 +199,17 @@ export default function Tasbih() {
           onClick={handleIncrement}
           className="w-32 h-32 rounded-[48px] bg-slate-900 shadow-2xl shadow-slate-400 flex items-center justify-center text-white relative group overflow-hidden"
         >
+          <AnimatePresence>
+            {particles.map(p => (
+              <motion.div
+                key={p.id}
+                initial={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+                animate={{ opacity: 0, scale: 0, x: p.x * 5, y: p.y * 5 }}
+                exit={{ opacity: 0 }}
+                className="absolute w-2 h-2 bg-emerald-400 rounded-full blur-[1px] pointer-events-none"
+              />
+            ))}
+          </AnimatePresence>
           <motion.div 
             className="absolute inset-0 bg-emerald-600 opacity-0 group-active:opacity-100 transition-opacity duration-100"
           />
