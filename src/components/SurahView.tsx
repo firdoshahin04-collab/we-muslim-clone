@@ -78,11 +78,17 @@ export default function SurahView() {
   const [isReadingTranslation, setIsReadingTranslation] = useState(false);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playPromiseRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause();
+        const oldAudio = audioRef.current;
+        if (playPromiseRef.current) {
+          playPromiseRef.current.then(() => oldAudio.pause()).catch(() => {});
+        } else {
+          oldAudio.pause();
+        }
         audioRef.current = null;
       }
     };
@@ -95,7 +101,17 @@ export default function SurahView() {
     const transAyah = translation.ayahs[ayahIndex];
 
     if (audioRef.current) {
-      audioRef.current.pause();
+      const oldAudio = audioRef.current;
+      if (playPromiseRef.current) {
+        playPromiseRef.current.then(() => {
+          oldAudio.pause();
+          oldAudio.currentTime = 0;
+        }).catch(() => {});
+      } else {
+        oldAudio.pause();
+        oldAudio.currentTime = 0;
+      }
+      
       if (playingAyah === ayah.number && isReadingTranslation) {
         setPlayingAyah(null);
         setIsReadingTranslation(false);
@@ -140,17 +156,25 @@ export default function SurahView() {
       }
     };
 
-    urduAudio.play().catch(err => {
-      console.error("Urdu audio play failed:", err);
-      // Try alternative source if primary fails
-      const surahNum = String(surah.number).padStart(3, '0');
-      const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
-      const fallbackUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
-      
-      const fallbackAudio = new Audio(fallbackUrl);
-      fallbackAudio.volume = volume;
-      audioRef.current = fallbackAudio;
-      fallbackAudio.play().catch(() => handleFallback());
+    const playPromise = urduAudio.play();
+    playPromiseRef.current = playPromise;
+    playPromise.catch(err => {
+      if (err.name !== 'AbortError') {
+        console.error("Urdu audio play failed:", err);
+        // Try alternative source if primary fails
+        const surahNum = String(surah.number).padStart(3, '0');
+        const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
+        const fallbackUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
+        
+        const fallbackAudio = new Audio(fallbackUrl);
+        fallbackAudio.volume = volume;
+        audioRef.current = fallbackAudio;
+        const fallbackPromise = fallbackAudio.play();
+        playPromiseRef.current = fallbackPromise;
+        fallbackPromise.catch(e => {
+          if (e.name !== 'AbortError') handleFallback();
+        });
+      }
     });
 
     urduAudio.onerror = () => {
@@ -176,7 +200,17 @@ export default function SurahView() {
     const transAyah = translation.ayahs[ayahIndex];
 
     if (audioRef.current) {
-      audioRef.current.pause();
+      const oldAudio = audioRef.current;
+      if (playPromiseRef.current) {
+        playPromiseRef.current.then(() => {
+          oldAudio.pause();
+          oldAudio.currentTime = 0;
+        }).catch(() => {});
+      } else {
+        oldAudio.pause();
+        oldAudio.currentTime = 0;
+      }
+
       if (playingAyah === ayah.number && !isReadingTranslation) {
         setPlayingAyah(null);
         setIsPlaying(false);
@@ -193,10 +227,14 @@ export default function SurahView() {
     setIsReadingTranslation(false);
     setIsPlaying(true);
     
-    arabicAudio.play().catch(err => {
-      console.error("Arabic audio play failed:", err);
-      // If Arabic fails, try to skip to Urdu
-      arabicAudio.onended?.(new Event('ended'));
+    const arabicPromise = arabicAudio.play();
+    playPromiseRef.current = arabicPromise;
+    arabicPromise.catch(err => {
+      if (err.name !== 'AbortError') {
+        console.error("Arabic audio play failed:", err);
+        // If Arabic fails, try to skip to Urdu
+        arabicAudio.onended?.(new Event('ended'));
+      }
     });
 
     arabicAudio.onpause = () => setIsPlaying(false);
@@ -233,16 +271,24 @@ export default function SurahView() {
         }
       };
 
-      urduAudio.play().catch(err => {
-        console.error("Urdu audio play failed:", err);
-        const surahNum = String(surah.number).padStart(3, '0');
-        const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
-        const fallbackUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
-        
-        const fallbackAudio = new Audio(fallbackUrl);
-        fallbackAudio.volume = volume;
-        audioRef.current = fallbackAudio;
-        fallbackAudio.play().catch(() => handleFallback());
+      const urduPromise = urduAudio.play();
+      playPromiseRef.current = urduPromise;
+      urduPromise.catch(err => {
+        if (err.name !== 'AbortError') {
+          console.error("Urdu audio play failed:", err);
+          const surahNum = String(surah.number).padStart(3, '0');
+          const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
+          const fallbackUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
+          
+          const fallbackAudio = new Audio(fallbackUrl);
+          fallbackAudio.volume = volume;
+          audioRef.current = fallbackAudio;
+          const fallbackPromise = fallbackAudio.play();
+          playPromiseRef.current = fallbackPromise;
+          fallbackPromise.catch(e => {
+            if (e.name !== 'AbortError') handleFallback();
+          });
+        }
       });
 
       urduAudio.onended = () => {
@@ -259,9 +305,18 @@ export default function SurahView() {
   const togglePlayback = () => {
     if (!audioRef.current) return;
     if (isPlaying) {
-      audioRef.current.pause();
+      const oldAudio = audioRef.current;
+      if (playPromiseRef.current) {
+        playPromiseRef.current.then(() => oldAudio.pause()).catch(() => {});
+      } else {
+        oldAudio.pause();
+      }
     } else {
-      audioRef.current.play();
+      const playPromise = audioRef.current.play();
+      playPromiseRef.current = playPromise;
+      playPromise.catch(err => {
+        if (err.name !== 'AbortError') console.error("Playback failed:", err);
+      });
     }
   };
 

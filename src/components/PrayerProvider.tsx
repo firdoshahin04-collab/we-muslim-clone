@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { getPrayerTimes } from '../lib/adhan';
 import { format, addMinutes, isSameMinute, startOfDay, addDays } from 'date-fns';
 import { LocalNotifications } from '@capacitor/local-notifications';
@@ -23,7 +23,9 @@ interface PrayerContextType {
   settings: PrayerSettings;
   updateOffsets: (offsets: Partial<PrayerOffsets>) => void;
   toggleAdhan: (enabled: boolean) => void;
+  stopAdhan: () => void;
   setAdhanAudio: (url: string) => void;
+  isAdhanPlaying: boolean;
   times: any;
   location: { lat: number; lng: number } | null;
 }
@@ -51,6 +53,9 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [times, setTimes] = useState<any>(null);
   const [lastPlayed, setLastPlayed] = useState<string | null>(null);
+  const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
+  const [isAdhanPlaying, setIsAdhanPlaying] = useState(false);
+  const adhanPlayPromiseRef = useRef<Promise<void> | null>(null);
 
   // Request Notification Permissions
   useEffect(() => {
@@ -171,7 +176,18 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
         if (isSameMinute(now, prayerTime) && lastPlayed !== prayerKey) {
           const audio = new Audio(settings.adhanAudio);
-          audio.play().catch(e => console.error("Adhan play failed:", e));
+          setCurrentAudio(audio);
+          setIsAdhanPlaying(true);
+          const playPromise = audio.play();
+          adhanPlayPromiseRef.current = playPromise;
+          playPromise.catch(e => {
+            if (e.name !== 'AbortError') console.error("Adhan play failed:", e);
+          });
+          audio.onended = () => {
+            setIsAdhanPlaying(false);
+            setCurrentAudio(null);
+            adhanPlayPromiseRef.current = null;
+          };
           setLastPlayed(prayerKey);
           break;
         }
@@ -190,12 +206,30 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSettings(prev => ({ ...prev, adhanEnabled: enabled }));
   };
 
+  const stopAdhan = () => {
+    if (currentAudio) {
+      const audioToPause = currentAudio;
+      if (adhanPlayPromiseRef.current) {
+        adhanPlayPromiseRef.current.then(() => {
+          audioToPause.pause();
+          audioToPause.currentTime = 0;
+        }).catch(() => {});
+      } else {
+        audioToPause.pause();
+        audioToPause.currentTime = 0;
+      }
+      setCurrentAudio(null);
+      setIsAdhanPlaying(false);
+      adhanPlayPromiseRef.current = null;
+    }
+  };
+
   const setAdhanAudio = (url: string) => {
     setSettings(prev => ({ ...prev, adhanAudio: url }));
   };
 
   return (
-    <PrayerContext.Provider value={{ settings, updateOffsets, toggleAdhan, setAdhanAudio, times, location }}>
+    <PrayerContext.Provider value={{ settings, updateOffsets, toggleAdhan, stopAdhan, setAdhanAudio, isAdhanPlaying, times, location }}>
       {children}
     </PrayerContext.Provider>
   );

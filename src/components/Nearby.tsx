@@ -15,6 +15,7 @@ export default function Nearby() {
   const [activeTab, setActiveTab] = useState<'mosque' | 'halal'>('mosque');
   const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
   const [selectedPlace, setSelectedPlace] = useState<any | null>(null);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     const q = searchParams.get('q');
@@ -39,27 +40,30 @@ export default function Nearby() {
   }, []);
 
   const searchNearby = async (type: 'mosque' | 'halal', customQuery?: string) => {
-    if (!location) return;
+    if (!location) {
+      console.warn("Location not available for search");
+      return;
+    }
     setLoading(true);
+    setIsSearching(true);
     setResults([]);
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-      let prompt = "";
       
-      if (customQuery) {
-        prompt = `Find places matching "${customQuery}" near my current location. Provide a list of places. For each place, provide its name, address, rating, distance, whether it's open now, and its latitude and longitude. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow | Lat | Lng'. Separate each place with a newline. Do not include any other text.`;
-      } else {
-        prompt = type === 'mosque' 
-          ? "Find ONLY mosques (Masjids) near my current location. Provide a list of mosques. For each mosque, provide its name, address, rating, distance, whether it's open now, and its latitude and longitude. Format each mosque as a single line like this: 'Name | Address | Rating | Distance | OpenNow | Lat | Lng'. Separate each mosque with a newline. Do not include any other text."
-          : "Find ONLY halal meat shops and halal restaurants near my current location. Provide a list. For each place, provide its name, address, rating, distance, whether it's open now, and its latitude and longitude. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow | Lat | Lng'. Separate each place with a newline. Do not include any other text.";
-      }
+      let prompt = "";
+      const searchType = customQuery ? `matching "${customQuery}"` : (type === 'mosque' ? "mosques" : "halal meat shops and halal restaurants");
+      
+      prompt = `Find ${searchType} near my current location (Lat: ${location.lat}, Lng: ${location.lng}). 
+      Return a list of places. For each place, provide: Name, Address, Rating (0-5), Distance (e.g. 1.2 km), Open Status (Open/Closed), Latitude, Longitude.
+      Format: Name | Address | Rating | Distance | OpenStatus | Lat | Lng
+      One place per line. No extra text. If no results, return "NONE".`;
 
       const response = await ai.models.generateContent({
         model: "gemini-3-flash-preview",
-        contents: prompt,
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
         config: {
-          tools: [{ googleMaps: {} }],
+          tools: [{ googleMaps: {} } as any],
           toolConfig: {
             retrievalConfig: {
               latLng: {
@@ -71,10 +75,11 @@ export default function Nearby() {
         },
       });
 
-      if (response && response.text) {
-        const lines = response.text.trim().split('\n');
+      const responseText = response.text;
+      
+      if (responseText && !responseText.includes("NONE")) {
+        const lines = responseText.trim().split('\n');
         const data = lines.map(line => {
-          // Remove leading numbers like "1. " or "- "
           const cleanLine = line.replace(/^[0-9.-]+\s*/, '').trim();
           const parts = cleanLine.split('|').map(s => s.trim());
           
@@ -84,7 +89,7 @@ export default function Nearby() {
           return {
             name,
             address,
-            rating: rating && rating !== 'N/A' ? rating : null,
+            rating: rating && rating !== 'N/A' && !isNaN(parseFloat(rating)) ? rating : null,
             distance: distance && distance !== 'N/A' ? distance : null,
             open_now: open_now?.toLowerCase().includes('open') || open_now?.toLowerCase().includes('true') || open_now?.toLowerCase().includes('yes'),
             lat: lat ? parseFloat(lat) : null,
@@ -92,11 +97,15 @@ export default function Nearby() {
           };
         }).filter((item): item is any => item !== null && !!item.name);
         setResults(data);
+      } else {
+        setResults([]);
       }
     } catch (error) {
       console.error("Search error:", error);
+      setResults([]);
     } finally {
       setLoading(false);
+      setIsSearching(false);
     }
   };
 
@@ -138,14 +147,38 @@ export default function Nearby() {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && searchNearby(activeTab, searchQuery)}
-            className="w-full bg-white border border-slate-100 rounded-[24px] py-4 pl-12 pr-16 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-sm"
+            className="w-full bg-white border border-slate-100 rounded-[24px] py-4 pl-12 pr-32 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all shadow-sm"
           />
-          <button 
-            onClick={() => searchNearby(activeTab, searchQuery)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 text-white px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all"
-          >
-            Search
-          </button>
+          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-1">
+            {searchQuery && (
+              <button 
+                onClick={() => {
+                  setSearchQuery('');
+                  searchNearby(activeTab);
+                }}
+                className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <ChevronLeft className="rotate-45" size={18} />
+              </button>
+            )}
+            <button 
+              onClick={() => searchNearby(activeTab, searchQuery)}
+              disabled={isSearching}
+              className={cn(
+                "bg-emerald-600 text-white px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2",
+                isSearching ? "opacity-70 cursor-not-allowed" : "hover:bg-emerald-500"
+              )}
+            >
+              {isSearching ? (
+                <>
+                  <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  Searching...
+                </>
+              ) : (
+                'Search'
+              )}
+            </button>
+          </div>
         </div>
       </header>
 
