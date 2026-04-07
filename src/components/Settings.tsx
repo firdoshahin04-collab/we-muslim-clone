@@ -17,18 +17,46 @@ export default function Settings() {
   ];
 
   const previewAudioRef = React.useRef<HTMLAudioElement | null>(null);
+  const previewAudioPromiseRef = React.useRef<Promise<void> | null>(null);
 
   const previewAudio = (url: string) => {
     if (previewAudioRef.current) {
-      previewAudioRef.current.pause();
+      const audioToPause = previewAudioRef.current;
+      if (previewAudioPromiseRef.current) {
+        previewAudioPromiseRef.current.then(() => {
+          audioToPause.pause();
+          audioToPause.currentTime = 0;
+        }).catch(() => {});
+      } else {
+        audioToPause.pause();
+        audioToPause.currentTime = 0;
+      }
     }
+    
     const audio = new Audio(url);
     previewAudioRef.current = audio;
-    audio.play().catch(e => console.error("Preview failed:", e));
+    
+    const playPromise = audio.play();
+    previewAudioPromiseRef.current = playPromise;
+    
+    if (playPromise !== undefined) {
+      playPromise.catch(e => {
+        if (e.name !== 'AbortError') {
+          console.error("Preview failed:", e);
+        }
+      });
+    }
+
     // Stop after 5 seconds
     setTimeout(() => {
       if (previewAudioRef.current === audio) {
-        audio.pause();
+        if (previewAudioPromiseRef.current) {
+          previewAudioPromiseRef.current.then(() => {
+            audio.pause();
+          }).catch(() => {});
+        } else {
+          audio.pause();
+        }
       }
     }, 5000);
   };
@@ -36,7 +64,14 @@ export default function Settings() {
   React.useEffect(() => {
     return () => {
       if (previewAudioRef.current) {
-        previewAudioRef.current.pause();
+        const audioToPause = previewAudioRef.current;
+        if (previewAudioPromiseRef.current) {
+          previewAudioPromiseRef.current.then(() => {
+            audioToPause.pause();
+          }).catch(() => {});
+        } else {
+          audioToPause.pause();
+        }
       }
     };
   }, []);

@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, Send, User, Shield, MessageSquare } from 'lucide-react';
+import { Heart, Send, User, Shield, MessageSquare, LogIn } from 'lucide-react';
 import { db, auth } from '../lib/firebase';
 import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp } from 'firebase/firestore';
+import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { cn } from '../lib/utils';
 import { awardKarma } from '../lib/karma';
 
@@ -17,6 +18,35 @@ export default function DuaWall() {
   const [newDua, setNewDua] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [user, setUser] = useState(auth.currentUser);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((u) => setUser(u));
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    if (isLoggingIn) return;
+    setIsLoggingIn(true);
+    setAuthError(null);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      if (error.code === 'auth/popup-blocked') {
+        setAuthError("Popup blocked! Please allow popups for this site in your browser settings.");
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // Ignore cancellation
+      } else {
+        setAuthError("Login failed. Please try again.");
+      }
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
 
   useEffect(() => {
     const q = query(collection(db, 'duas'), orderBy('createdAt', 'desc'));
@@ -71,39 +101,63 @@ export default function DuaWall() {
       </div>
 
       {/* Post Form */}
-      <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
-        <textarea
-          value={newDua}
-          onChange={(e) => setNewDua(e.target.value)}
-          placeholder="What is your prayer today?"
-          className="w-full h-32 bg-slate-50 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none"
-        />
-        <div className="flex items-center justify-between">
-          <label className="flex items-center gap-2 cursor-pointer group">
-            <div className={cn(
-              "w-5 h-5 rounded border flex items-center justify-center transition-all",
-              isAnonymous ? "bg-emerald-600 border-emerald-600" : "border-slate-300 group-hover:border-emerald-500"
-            )}>
-              <input
-                type="checkbox"
-                checked={isAnonymous}
-                onChange={(e) => setIsAnonymous(e.target.checked)}
-                className="hidden"
-              />
-              {isAnonymous && <Shield size={12} className="text-white" />}
-            </div>
-            <span className="text-sm text-slate-600">Post Anonymously</span>
-          </label>
+      {!user ? (
+        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100 text-center space-y-4">
+          <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
+            <LogIn size={32} />
+          </div>
+          <div className="space-y-1">
+            <h3 className="font-bold text-slate-800">Sign in to post</h3>
+            <p className="text-sm text-slate-500">Join the community and share your prayers.</p>
+          </div>
+          {authError && (
+            <p className="text-xs text-rose-500 bg-rose-50 p-3 rounded-xl border border-rose-100">
+              {authError}
+            </p>
+          )}
           <button
-            type="submit"
-            disabled={loading || !newDua.trim()}
-            className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-all"
+            onClick={handleLogin}
+            disabled={isLoggingIn}
+            className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 transition-all shadow-lg shadow-emerald-200"
           >
-            <span>Post</span>
-            <Send size={16} />
+            {isLoggingIn ? "Connecting..." : "Login with Google"}
           </button>
         </div>
-      </form>
+      ) : (
+        <form onSubmit={handleSubmit} className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-4">
+          <textarea
+            value={newDua}
+            onChange={(e) => setNewDua(e.target.value)}
+            placeholder="What is your prayer today?"
+            className="w-full h-32 bg-slate-50 rounded-2xl p-4 outline-none focus:ring-2 focus:ring-emerald-500/20 transition-all resize-none"
+          />
+          <div className="flex items-center justify-between">
+            <label className="flex items-center gap-2 cursor-pointer group">
+              <div className={cn(
+                "w-5 h-5 rounded border flex items-center justify-center transition-all",
+                isAnonymous ? "bg-emerald-600 border-emerald-600" : "border-slate-300 group-hover:border-emerald-500"
+              )}>
+                <input
+                  type="checkbox"
+                  checked={isAnonymous}
+                  onChange={(e) => setIsAnonymous(e.target.checked)}
+                  className="hidden"
+                />
+                {isAnonymous && <Shield size={12} className="text-white" />}
+              </div>
+              <span className="text-sm text-slate-600">Post Anonymously</span>
+            </label>
+            <button
+              type="submit"
+              disabled={loading || !newDua.trim()}
+              className="flex items-center gap-2 px-6 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 disabled:opacity-50 transition-all"
+            >
+              <span>Post</span>
+              <Send size={16} />
+            </button>
+          </div>
+        </form>
+      )}
 
       {/* Duas List */}
       <div className="space-y-4">

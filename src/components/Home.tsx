@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play, MessageSquare, Radio, Activity, Target, ShieldCheck, Trophy, Zap } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play, MessageSquare, Radio, Activity, Target, ShieldCheck, Trophy, Zap, LogIn, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { RubElHizb, CrescentStar, IslamicPattern } from './DecorativeIcons';
 import { db, auth } from '../lib/firebase';
+import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
 import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { awardKarma } from '../lib/karma';
 
@@ -32,6 +33,43 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [lastRead, setLastRead] = useState<any>(null);
   const [userKarma, setUserKarma] = useState<any>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [user, setUser] = useState(auth.currentUser);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((u) => setUser(u));
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    if (isLoggingIn) return;
+    setIsLoggingIn(true);
+    setAuthError(null);
+    const provider = new GoogleAuthProvider();
+    try {
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      if (error.code === 'auth/popup-blocked') {
+        alert("Popup blocked! Please allow popups for this site in your browser settings.");
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // Ignore cancellation
+      } else {
+        alert("Login failed. Please try again.");
+      }
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
 
   useEffect(() => {
     if (!auth.currentUser) return;
@@ -156,6 +194,31 @@ export default function Home() {
             </motion.div>
           </div>
           <div className="flex gap-2">
+            {user ? (
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogout}
+                className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-rose-500 hover:bg-rose-50 transition-all"
+                title="Logout"
+              >
+                <LogOut size={20} strokeWidth={2.5} />
+              </motion.button>
+            ) : (
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogin}
+                disabled={isLoggingIn}
+                className={cn(
+                  "w-12 h-12 glass rounded-2xl flex items-center justify-center transition-all",
+                  isLoggingIn ? "text-slate-300" : "text-emerald-600 hover:bg-emerald-50"
+                )}
+                title="Login"
+              >
+                <LogIn size={20} strokeWidth={2.5} className={cn(isLoggingIn && "animate-pulse")} />
+              </motion.button>
+            )}
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
