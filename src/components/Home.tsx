@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -26,6 +26,7 @@ export default function Home() {
   const { times, location } = usePrayer();
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
@@ -138,6 +139,29 @@ export default function Home() {
               <SettingsIcon size={22} strokeWidth={2.5} />
             </motion.button>
           </div>
+        </div>
+
+        {/* Optimized Search Bar */}
+        <div className="mt-6 relative group">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-emerald-500 transition-colors" size={20} />
+          <input 
+            type="text" 
+            placeholder="Search mosque, halal food, or place..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && searchQuery.trim()) {
+                navigate(`/nearby?q=${encodeURIComponent(searchQuery)}`);
+              }
+            }}
+            className="w-full bg-slate-50/50 border border-slate-100 rounded-[24px] py-4 pl-12 pr-16 text-sm font-medium focus:outline-none focus:ring-4 focus:ring-emerald-500/10 focus:bg-white transition-all shadow-sm"
+          />
+          <button 
+            onClick={() => searchQuery.trim() && navigate(`/nearby?q=${encodeURIComponent(searchQuery)}`)}
+            className="absolute right-2 top-1/2 -translate-y-1/2 bg-emerald-600 text-white px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-200"
+          >
+            Search
+          </button>
         </div>
       </header>
 

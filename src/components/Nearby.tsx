@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { MapPin, Search, Store, Building2, ChevronRight, Clock, Star } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
+import { MapPin, Search, Store, Building2, ChevronRight, ChevronLeft, Clock, Star } from 'lucide-react';
 import { GoogleGenAI } from "@google/genai";
 import Markdown from 'react-markdown';
 import { motion, AnimatePresence } from 'motion/react';
@@ -7,11 +8,23 @@ import { cn } from '../lib/utils';
 import { CrescentStar, IslamicPattern } from './DecorativeIcons';
 
 export default function Nearby() {
+  const [searchParams] = useSearchParams();
   const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [results, setResults] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'mosque' | 'halal'>('mosque');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('q') || '');
+  const [selectedPlace, setSelectedPlace] = useState<any | null>(null);
+
+  useEffect(() => {
+    const q = searchParams.get('q');
+    if (q) {
+      setSearchQuery(q);
+      if (location) {
+        searchNearby(activeTab, q);
+      }
+    }
+  }, [searchParams, location]);
 
   useEffect(() => {
     navigator.geolocation.getCurrentPosition(
@@ -35,11 +48,11 @@ export default function Nearby() {
       let prompt = "";
       
       if (customQuery) {
-        prompt = `Find places matching "${customQuery}" near my current location. Provide a list of places. For each place, provide its name, address, rating, distance, and whether it's open now. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow'. Separate each place with a newline. Do not include any other text.`;
+        prompt = `Find places matching "${customQuery}" near my current location. Provide a list of places. For each place, provide its name, address, rating, distance, whether it's open now, and its latitude and longitude. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow | Lat | Lng'. Separate each place with a newline. Do not include any other text.`;
       } else {
         prompt = type === 'mosque' 
-          ? "Find ONLY mosques (Masjids) near my current location. Provide a list of mosques. For each mosque, provide its name, address, rating, distance, and whether it's open now. Format each mosque as a single line like this: 'Name | Address | Rating | Distance | OpenNow'. Separate each mosque with a newline. Do not include any other text."
-          : "Find ONLY halal meat shops and halal restaurants near my current location. Provide a list. For each place, provide its name, address, rating, distance, and whether it's open now. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow'. Separate each place with a newline. Do not include any other text.";
+          ? "Find ONLY mosques (Masjids) near my current location. Provide a list of mosques. For each mosque, provide its name, address, rating, distance, whether it's open now, and its latitude and longitude. Format each mosque as a single line like this: 'Name | Address | Rating | Distance | OpenNow | Lat | Lng'. Separate each mosque with a newline. Do not include any other text."
+          : "Find ONLY halal meat shops and halal restaurants near my current location. Provide a list. For each place, provide its name, address, rating, distance, whether it's open now, and its latitude and longitude. Format each place as a single line like this: 'Name | Address | Rating | Distance | OpenNow | Lat | Lng'. Separate each place with a newline. Do not include any other text.";
       }
 
       const response = await ai.models.generateContent({
@@ -67,13 +80,15 @@ export default function Nearby() {
           
           if (parts.length < 2) return null;
 
-          const [name, address, rating, distance, open_now] = parts;
+          const [name, address, rating, distance, open_now, lat, lng] = parts;
           return {
             name,
             address,
             rating: rating && rating !== 'N/A' ? rating : null,
             distance: distance && distance !== 'N/A' ? distance : null,
-            open_now: open_now?.toLowerCase().includes('open') || open_now?.toLowerCase().includes('true') || open_now?.toLowerCase().includes('yes')
+            open_now: open_now?.toLowerCase().includes('open') || open_now?.toLowerCase().includes('true') || open_now?.toLowerCase().includes('yes'),
+            lat: lat ? parseFloat(lat) : null,
+            lng: lng ? parseFloat(lng) : null
           };
         }).filter((item): item is any => item !== null && !!item.name);
         setResults(data);
@@ -86,7 +101,7 @@ export default function Nearby() {
   };
 
   useEffect(() => {
-    if (location) {
+    if (location && !searchParams.get('q')) {
       searchNearby(activeTab);
     }
   }, [location, activeTab]);
@@ -264,11 +279,7 @@ export default function Nearby() {
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
                         onClick={() => {
-                          if (location) {
-                            window.open(`https://www.google.com/maps/dir/?api=1&origin=${location.lat},${location.lng}&destination=${encodeURIComponent(place.name + ' ' + place.address)}&travelmode=driving`, '_blank');
-                          } else {
-                            window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.name + ' ' + place.address)}`, '_blank');
-                          }
+                          setSelectedPlace(place);
                         }}
                         className="px-6 py-3 bg-emerald-600 text-white rounded-2xl flex items-center gap-2 text-[10px] font-black uppercase tracking-widest hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-200"
                       >
@@ -302,6 +313,77 @@ export default function Nearby() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* In-App Navigation View */}
+      <AnimatePresence>
+        {selectedPlace && (
+          <motion.div 
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
+            className="fixed inset-0 z-[100] bg-white flex flex-col"
+          >
+            <header className="p-6 border-b border-slate-100 flex items-center justify-between bg-white/80 backdrop-blur-xl">
+              <div className="flex items-center gap-4">
+                <button 
+                  onClick={() => setSelectedPlace(null)}
+                  className="p-2.5 bg-slate-50 hover:bg-emerald-50 text-slate-600 hover:text-emerald-600 rounded-2xl transition-all"
+                >
+                  <ChevronLeft size={22} />
+                </button>
+                <div>
+                  <h2 className="font-black text-slate-800 tracking-tight leading-none mb-1">{selectedPlace.name}</h2>
+                  <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">Navigation Mode</p>
+                </div>
+              </div>
+              <div className="w-10 h-10 bg-emerald-600 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-200">
+                <MapPin size={20} className="text-white" />
+              </div>
+            </header>
+            
+            <div className="flex-1 relative bg-slate-100">
+              <iframe 
+                title="Navigation"
+                width="100%" 
+                height="100%" 
+                style={{ border: 0 }}
+                loading="lazy"
+                allowFullScreen
+                src={`https://maps.google.com/maps?saddr=${location?.lat},${location?.lng}&daddr=${selectedPlace.lat || encodeURIComponent(selectedPlace.name + ' ' + selectedPlace.address)}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+              />
+              
+              {/* Floating Action Bar */}
+              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-[90%] max-w-md">
+                <div className="bg-white p-6 rounded-[40px] shadow-2xl border border-slate-100 flex flex-col gap-4">
+                  <div className="flex items-start gap-4">
+                    <div className="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center shrink-0">
+                      <MapPin size={24} className="text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Destination</p>
+                      <p className="text-sm font-bold text-slate-800 leading-tight">{selectedPlace.address}</p>
+                    </div>
+                  </div>
+                  <div className="flex gap-3">
+                    <button 
+                      onClick={() => window.open(`https://www.google.com/maps/dir/?api=1&origin=${location?.lat},${location?.lng}&destination=${encodeURIComponent(selectedPlace.name + ' ' + selectedPlace.address)}&travelmode=driving`, '_blank')}
+                      className="flex-1 py-4 bg-emerald-600 text-white rounded-[24px] text-[11px] font-black uppercase tracking-widest shadow-lg shadow-emerald-200 hover:bg-emerald-500 transition-all flex items-center justify-center gap-2"
+                    >
+                      Open in Google Maps <ChevronRight size={14} />
+                    </button>
+                    <button 
+                      onClick={() => setSelectedPlace(null)}
+                      className="px-6 py-4 bg-slate-100 text-slate-600 rounded-[24px] text-[11px] font-black uppercase tracking-widest hover:bg-slate-200 transition-all"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
