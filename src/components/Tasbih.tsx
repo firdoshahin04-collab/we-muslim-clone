@@ -16,14 +16,41 @@ const TASBIHS = [
 
 export default function Tasbih() {
   const [count, setCount] = useState(0);
+  const [totalDaily, setTotalDaily] = useState(0);
   const [target, setTarget] = useState(33);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [beads, setBeads] = useState(Array.from({ length: 10 }, (_, i) => i));
   const [particles, setParticles] = useState<{ id: number, x: number, y: number }[]>([]);
   const controls = useAnimation();
 
-  const handleIncrement = (e: React.MouseEvent | React.TouchEvent) => {
-    setCount(prev => prev + 1);
+  useEffect(() => {
+    const saved = localStorage.getItem('tasbih_daily_count');
+    if (saved) setTotalDaily(parseInt(saved));
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem('tasbih_daily_count', totalDaily.toString());
+  }, [totalDaily]);
+
+  const handleIncrement = (e?: React.MouseEvent | React.TouchEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    
+    const newCount = count + 1;
+    setCount(newCount);
+    setTotalDaily(prev => prev + 1);
+    
+    // Advanced Haptics
+    if (navigator.vibrate) {
+      if (newCount % 100 === 0) {
+        navigator.vibrate(1000); // Continuous 1-sec
+      } else if (newCount % 33 === 0) {
+        navigator.vibrate([200, 100, 200]); // Double heavy
+      } else {
+        navigator.vibrate(50); // Light
+      }
+    }
     
     // Add particle
     const id = Date.now();
@@ -43,10 +70,6 @@ export default function Tasbih() {
       });
       controls.set({ x: 0 });
     });
-
-    if (navigator.vibrate) {
-      navigator.vibrate(50);
-    }
   };
 
   const resetCount = () => {
@@ -67,6 +90,13 @@ export default function Tasbih() {
 
   return (
     <div className="flex flex-col h-full bg-[#f8f9fb] overflow-hidden pb-24">
+      {/* Massive Invisible Button */}
+      <div 
+        className="fixed inset-0 z-0 cursor-pointer" 
+        onClick={() => handleIncrement()}
+        onContextMenu={(e) => e.preventDefault()}
+      />
+
       {/* Header */}
       <header className="p-5 flex items-center justify-between bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-50">
         <div className="flex items-center gap-3">

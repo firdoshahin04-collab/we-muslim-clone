@@ -1,0 +1,16 @@
+{
+  "haram_ingredients": [
+    "E120", "E441", "E542", "E904", "E913", "E920", "E921", "E966",
+    "Gelatin", "Lard", "Pepsin", "Rennet", "Whey", "Alcohol", "Ethanol",
+    "Carmine", "Cochineal", "Shellac", "Tallow", "Stearic Acid", "Glycerol",
+    "Mono and diglycerides", "Polysorbates"
+  ],
+  "caution_ingredients": [
+    "E100", "E110", "E153", "E160a", "E161b", "E212", "E215", "E226",
+    "E252", "E270", "E280", "E322", "E325", "E326", "E327", "E422",
+    "E430", "E431", "E432", "E433", "E434", "E435", "E436", "E442",
+    "E470", "E471", "E472", "E473", "E474", "E475", "E476", "E477",
+    "E478", "E481", "E482", "E483", "E491", "E492", "E493", "E494",
+    "E495", "E570", "E572", "E627", "E631", "E635"
+  ]
+}

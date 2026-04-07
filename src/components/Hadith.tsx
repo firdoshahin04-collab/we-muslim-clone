@@ -28,6 +28,30 @@ const HADITHS = [
     arabic: "طَلَبُ الْعِلْمِ فَرِيضَةٌ عَلَى كُلِّ مُسْلِمٍ", 
     english: "Seeking knowledge is a duty upon every Muslim.",
     reference: "Book 1, Hadith 224"
+  },
+  {
+    id: 4,
+    source: "Sahih Bukhari",
+    narrator: "Abu Huraira",
+    arabic: "مَنْ كَانَ يُؤْمِنُ بِاللَّهِ وَالْيَوْمِ الآخِرِ فَلْيَقُلْ خَيْرًا أَوْ لِيَصْمُتْ",
+    english: "Whoever believes in Allah and the Last Day should speak what is good or keep silent.",
+    reference: "Book 78, Hadith 6018"
+  },
+  {
+    id: 5,
+    source: "Sahih Muslim",
+    narrator: "Abu Huraira",
+    arabic: "لاَ يَدْخُلُ الْجَنَّةَ مَنْ لاَ يَأْمَنُ جَارُهُ بَوَائِقَهُ",
+    english: "He will not enter Paradise whose neighbor is not secure from his wrongful conduct.",
+    reference: "Book 1, Hadith 74"
+  },
+  {
+    id: 6,
+    source: "Jami` at-Tirmidhi",
+    narrator: "Abdullah bin Amr",
+    arabic: "الرَّاحِمُونَ يَرْحَمُهُمُ الرَّحْمَنُ ارْحَمُوا مَنْ فِي الأَرْضِ يَرْحَمْكُمْ مَنْ فِي السَّمَاءِ",
+    english: "The merciful are shown mercy by the Most Merciful. Be merciful to those on the earth and the One in the heavens will have mercy upon you.",
+    reference: "Book 27, Hadith 1924"
   }
 ];
 

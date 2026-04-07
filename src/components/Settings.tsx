@@ -1,11 +1,11 @@
 import React from 'react';
 import { usePrayer, ADHAN_OPTIONS } from './PrayerProvider';
-import { Bell, BellOff, Volume2, Clock, ChevronRight, Settings as SettingsIcon } from 'lucide-react';
+import { Bell, BellOff, Volume2, Clock, ChevronRight, Settings as SettingsIcon, Shield, MapPin } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 
 export default function Settings() {
-  const { settings, updateOffsets, toggleAdhan, setAdhanAudio } = usePrayer();
+  const { settings, updateOffsets, toggleAdhan, toggleMosqueMode, setAdhanAudio } = usePrayer();
 
   const prayers = [
     { id: 'fajr', name: 'Fajr' },
@@ -90,6 +90,42 @@ export default function Settings() {
           >
             <motion.div 
               animate={{ x: settings.adhanEnabled ? 28 : 0 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className="w-6 h-6 bg-white rounded-full shadow-md"
+            />
+          </button>
+        </div>
+      </motion.section>
+
+      {/* Auto-Silent Geofencing Toggle */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.25 }}
+        className="bg-white p-7 rounded-[40px] border border-slate-100 shadow-sm"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className={cn(
+              "w-14 h-14 rounded-[22px] flex items-center justify-center transition-all duration-500 shadow-inner",
+              settings.mosqueModeEnabled ? "bg-blue-50 text-blue-600" : "bg-slate-50 text-slate-400"
+            )}>
+              <MapPin size={26} />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-800 tracking-tight">Mosque Mode</h3>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Auto-Silent in Masajid</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => toggleMosqueMode(!settings.mosqueModeEnabled)}
+            className={cn(
+              "w-16 h-9 rounded-full transition-all relative p-1.5 shadow-inner",
+              settings.mosqueModeEnabled ? "bg-blue-500" : "bg-slate-200"
+            )}
+          >
+            <motion.div 
+              animate={{ x: settings.mosqueModeEnabled ? 28 : 0 }}
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
               className="w-6 h-6 bg-white rounded-full shadow-md"
             />

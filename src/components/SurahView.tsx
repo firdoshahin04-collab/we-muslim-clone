@@ -4,6 +4,7 @@ import { ChevronLeft, Play, Pause, Volume2, Share2, Bookmark } from 'lucide-reac
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { RubElHizb, IslamicPattern } from './DecorativeIcons';
+import { awardKarma } from '../lib/karma';
 
 interface Ayah {
   number: number;
@@ -39,6 +40,24 @@ export default function SurahView() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [volume, setVolume] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
+  const [readingTime, setReadingTime] = useState(0);
+  const [karmaAwarded, setKarmaAwarded] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setReadingTime(prev => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    // Award 50 points after 10 minutes (600 seconds)
+    if (readingTime >= 600 && !karmaAwarded) {
+      awardKarma(50);
+      setKarmaAwarded(true);
+      alert("MashaAllah! You've earned 50 points for reading Quran for 10 minutes.");
+    }
+  }, [readingTime, karmaAwarded]);
 
   useEffect(() => {
     const handleScroll = () => {

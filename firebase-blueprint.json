@@ -1,0 +1,42 @@
+{
+  "entities": {
+    "user": {
+      "title": "User",
+      "description": "User profile with karma points",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "karmaPoints": { "type": "number" },
+        "level": { "type": "string", "enum": ["Novice", "Explorer", "Muhsin"] }
+      },
+      "required": ["uid", "karmaPoints"]
+    },
+    "dua": {
+      "title": "Dua",
+      "description": "Global Dua Wall post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "content": { "type": "string" },
+        "authorUid": { "type": "string" },
+        "authorName": { "type": "string" },
+        "isAnonymous": { "type": "boolean" },
+        "ameenCount": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["content", "authorUid", "ameenCount", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "user",
+      "description": "User profiles"
+    },
+    "/duas/{duaId}": {
+      "schema": "dua",
+      "description": "Global Dua Wall posts"
+    }
+  }
+}

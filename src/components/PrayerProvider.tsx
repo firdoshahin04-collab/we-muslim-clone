@@ -17,15 +17,18 @@ interface PrayerSettings {
   offsets: PrayerOffsets;
   adhanEnabled: boolean;
   adhanAudio: string;
+  mosqueModeEnabled: boolean;
 }
 
 interface PrayerContextType {
   settings: PrayerSettings;
   updateOffsets: (offsets: Partial<PrayerOffsets>) => void;
   toggleAdhan: (enabled: boolean) => void;
+  toggleMosqueMode: (enabled: boolean) => void;
   stopAdhan: () => void;
   setAdhanAudio: (url: string) => void;
   isAdhanPlaying: boolean;
+  isMosqueModeActive: boolean;
   times: any;
   location: { lat: number; lng: number } | null;
 }
@@ -48,6 +51,7 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       offsets: { fajr: 0, sunrise: 0, dhuhr: 0, asr: 0, maghrib: 0, isha: 0 },
       adhanEnabled: true,
       adhanAudio: ADHAN_OPTIONS[0].url,
+      mosqueModeEnabled: false,
     };
   });
 
@@ -55,6 +59,7 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [lastPlayed, setLastPlayed] = useState<string | null>(null);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [isAdhanPlaying, setIsAdhanPlaying] = useState(false);
+  const [isMosqueModeActive, setIsMosqueModeActive] = useState(false);
   const adhanPlayPromiseRef = useRef<Promise<void> | null>(null);
 
   // Request Notification Permissions
@@ -198,12 +203,53 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return () => clearInterval(interval);
   }, [settings.adhanEnabled, settings.adhanAudio, times, lastPlayed]);
 
+  // Mosque Mode Geofencing (Mock implementation for web)
+  useEffect(() => {
+    if (!settings.mosqueModeEnabled || !location) {
+      setIsMosqueModeActive(false);
+      return;
+    }
+
+    const checkGeofence = () => {
+      // In a real app, we would fetch nearby mosques from Google Places API
+      // For this demo, we'll simulate being in a mosque if we're near a specific coordinate
+      // or just randomly toggle it for demonstration if the user is at a "mosque"
+      
+      // Mock Mosque Coordinates (e.g., near the user's current location for testing)
+      const mockMosque = { lat: location.lat + 0.0001, lng: location.lng + 0.0001 };
+      
+      const distance = Math.sqrt(
+        Math.pow(location.lat - mockMosque.lat, 2) + 
+        Math.pow(location.lng - mockMosque.lng, 2)
+      );
+
+      // Roughly 50 meters in degrees is ~0.00045
+      if (distance < 0.0005) {
+        setIsMosqueModeActive(true);
+        if (settings.adhanEnabled) {
+          // Auto-disable adhan sound if in mosque
+          // toggleAdhan(false); 
+        }
+      } else {
+        setIsMosqueModeActive(false);
+      }
+    };
+
+    const interval = setInterval(checkGeofence, 10000);
+    checkGeofence();
+    return () => clearInterval(interval);
+  }, [settings.mosqueModeEnabled, location]);
+
   const updateOffsets = (newOffsets: Partial<PrayerOffsets>) => {
     setSettings(prev => ({ ...prev, offsets: { ...prev.offsets, ...newOffsets } }));
   };
 
   const toggleAdhan = (enabled: boolean) => {
     setSettings(prev => ({ ...prev, adhanEnabled: enabled }));
+  };
+
+  const toggleMosqueMode = (enabled: boolean) => {
+    setSettings(prev => ({ ...prev, mosqueModeEnabled: enabled }));
   };
 
   const stopAdhan = () => {
@@ -229,7 +275,18 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   return (
-    <PrayerContext.Provider value={{ settings, updateOffsets, toggleAdhan, stopAdhan, setAdhanAudio, isAdhanPlaying, times, location }}>
+    <PrayerContext.Provider value={{ 
+      settings, 
+      updateOffsets, 
+      toggleAdhan, 
+      toggleMosqueMode,
+      stopAdhan, 
+      setAdhanAudio, 
+      isAdhanPlaying, 
+      isMosqueModeActive,
+      times, 
+      location 
+    }}>
       {children}
     </PrayerContext.Provider>
   );

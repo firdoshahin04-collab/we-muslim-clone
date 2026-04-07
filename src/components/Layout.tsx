@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { Home, BookOpen, Compass, MapPin, Settings, Fingerprint, List, Heart } from 'lucide-react';
+import { Home, BookOpen, Compass, MapPin, Settings, Fingerprint, List, Heart, Quote } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { IslamicPattern } from './DecorativeIcons';

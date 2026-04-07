@@ -1,11 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play, MessageSquare, Radio, Activity, Target, ShieldCheck, Trophy, Zap } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { RubElHizb, CrescentStar, IslamicPattern } from './DecorativeIcons';
+import { db, auth } from '../lib/firebase';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { awardKarma } from '../lib/karma';
 
 const DAILY_VERSES = [
   { arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", meaning: "For indeed, with hardship [will be] ease.", reference: "94:5" },
@@ -28,6 +31,28 @@ export default function Home() {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [lastRead, setLastRead] = useState<any>(null);
+  const [userKarma, setUserKarma] = useState<any>(null);
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+    
+    const userRef = doc(db, 'users', auth.currentUser.uid);
+    const unsubscribe = onSnapshot(userRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setUserKarma(docSnap.data());
+      } else {
+        // Initialize user if not exists
+        setDoc(userRef, {
+          uid: auth.currentUser?.uid,
+          displayName: auth.currentUser?.displayName || 'User',
+          karmaPoints: 0,
+          level: 'Novice'
+        });
+      }
+    });
+    
+    return () => unsubscribe();
+  }, []);
 
   useEffect(() => {
     const saved = localStorage.getItem('lastReadSurah');
@@ -84,7 +109,16 @@ export default function Home() {
   const currentPrayer = times.current === 'none' ? 'Isha' : times.current;
 
   const togglePrayer = (name: string) => {
-    setPrayersDone(prev => prev.includes(name) ? prev.filter(p => p !== name) : [...prev, name]);
+    const isDone = prayersDone.includes(name);
+    setPrayersDone(prev => isDone ? prev.filter(p => p !== name) : [...prev, name]);
+    if (!isDone) {
+      awardKarma(10); // Small reward for each prayer
+    }
+  };
+
+  const handleMosqueCheckIn = async () => {
+    await awardKarma(100);
+    alert("MashaAllah! You've earned 100 points for checking in at the mosque.");
   };
 
   return (
@@ -178,9 +212,16 @@ export default function Home() {
         {[
           { id: 'names', title: '99 Names', icon: Sparkles, color: 'bg-amber-50', iconColor: 'text-amber-600', path: '/names', description: 'Asma-ul-Husna' },
           { id: 'quran', title: 'Holy Quran', icon: Book, color: 'bg-emerald-50', iconColor: 'text-emerald-600', path: '/quran', description: 'Read & Listen' },
+          { id: 'mood', title: 'AI Mood Dua', icon: Sparkles, color: 'bg-indigo-50', iconColor: 'text-indigo-600', path: '/mood-dua', description: 'AI Comfort' },
+          { id: 'dua-wall', title: 'Dua Wall', icon: MessageSquare, color: 'bg-rose-50', iconColor: 'text-rose-600', path: '/dua-wall', description: 'Global Prayers' },
+          { id: 'live', title: 'Live Stream', icon: Radio, color: 'bg-blue-50', iconColor: 'text-blue-600', path: '/live', description: 'Makkah/Madinah' },
+          { id: 'wellness', title: 'Wellness', icon: Activity, color: 'bg-emerald-50', iconColor: 'text-emerald-600', path: '/wellness', description: 'Sunnah Health' },
+          { id: 'khatam', title: 'Khatam', icon: Target, color: 'bg-amber-50', iconColor: 'text-amber-600', path: '/khatam', description: 'Quran Planner' },
+          { id: 'scanner', title: 'Scanner', icon: ShieldCheck, color: 'bg-slate-50', iconColor: 'text-slate-600', path: '/scanner', description: 'Halal Check' },
           { id: 'duas', title: 'Daily Duas', icon: Heart, color: 'bg-rose-50', iconColor: 'text-rose-600', path: '/duas', description: 'Supplications' },
           { id: 'azkar', title: 'Azkar', icon: Moon, color: 'bg-indigo-50', iconColor: 'text-indigo-600', path: '/azkar', description: 'Remembrance' },
           { id: 'nearby', title: 'Nearby', icon: MapPin, color: 'bg-blue-50', iconColor: 'text-blue-600', path: '/nearby', description: 'Find Masjids' },
+          { id: 'hadith', title: 'Hadith', icon: Quote, color: 'bg-amber-50', iconColor: 'text-amber-600', path: '/hadith', description: 'Hadith Library' },
           { id: 'tasbih', title: 'Tasbih', icon: Fingerprint, color: 'bg-slate-50', iconColor: 'text-slate-600', path: '/tasbih', description: 'Digital Counter' },
         ].map((feature) => (
           <motion.button
@@ -201,7 +242,14 @@ export default function Home() {
               feature.id === 'quran' ? 'group-hover:bg-emerald-500' :
               feature.id === 'duas' ? 'group-hover:bg-rose-500' :
               feature.id === 'azkar' ? 'group-hover:bg-indigo-500' :
-              feature.id === 'nearby' ? 'group-hover:bg-blue-500' : 'group-hover:bg-slate-500'
+              feature.id === 'nearby' ? 'group-hover:bg-blue-500' : 
+              feature.id === 'hadith' ? 'group-hover:bg-amber-500' : 
+              feature.id === 'mood' ? 'group-hover:bg-indigo-500' :
+              feature.id === 'dua-wall' ? 'group-hover:bg-rose-500' :
+              feature.id === 'live' ? 'group-hover:bg-blue-500' :
+              feature.id === 'wellness' ? 'group-hover:bg-emerald-500' :
+              feature.id === 'khatam' ? 'group-hover:bg-amber-500' :
+              feature.id === 'scanner' ? 'group-hover:bg-slate-500' : 'group-hover:bg-slate-500'
             )}>
               <feature.icon size={24} fill={feature.id === 'names' || feature.id === 'duas' ? "currentColor" : "none"} />
             </div>
@@ -244,6 +292,49 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Karma & Good Deeds Section */}
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-[48px] p-8 text-white relative overflow-hidden shadow-2xl shadow-orange-200"
+      >
+        <div className="absolute inset-0 bg-islamic-pattern opacity-10" />
+        <div className="relative z-10 flex items-center justify-between">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Trophy size={20} className="text-amber-200" />
+              <h3 className="text-[11px] font-black text-amber-100 uppercase tracking-[0.3em]">Karma & Deeds</h3>
+            </div>
+            <div>
+              <p className="text-4xl font-black tracking-tighter">{userKarma?.karmaPoints || 0}</p>
+              <p className="text-[10px] font-black uppercase tracking-widest text-amber-100/70">Total Points</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/10 flex items-center gap-2">
+                <Zap size={14} className="text-amber-300" />
+                <span className="text-xs font-black uppercase tracking-widest">{userKarma?.level || 'Novice'}</span>
+              </div>
+              <button 
+                onClick={handleMosqueCheckIn}
+                className="px-4 py-2 bg-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-emerald-900/20 hover:bg-emerald-400 transition-all"
+              >
+                Mosque Check-in
+              </button>
+            </div>
+          </div>
+          <div className="relative">
+            <div className="w-24 h-24 rounded-full border-4 border-white/20 flex items-center justify-center relative">
+              <motion.div 
+                animate={{ rotate: 360 }}
+                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                className="absolute inset-0 border-4 border-t-amber-300 border-transparent rounded-full"
+              />
+              <Star size={40} className="text-amber-300 fill-amber-300" />
+            </div>
+          </div>
+        </div>
+      </motion.section>
 
       {/* Hero Prayer Card */}
       <motion.div 

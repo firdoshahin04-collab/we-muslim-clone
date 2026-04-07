@@ -12,6 +12,13 @@ import Settings from './components/Settings';
 import Duas from './components/Duas';
 import NamesOfAllah from './components/NamesOfAllah';
 import Azkar from './components/Azkar';
+import Hadith from './components/Hadith';
+import MoodDua from './components/MoodDua';
+import DuaWall from './components/DuaWall';
+import LiveStream from './components/LiveStream';
+import SunnahWellness from './components/SunnahWellness';
+import KhatamPlanner from './components/KhatamPlanner';
+import HalalScanner from './components/HalalScanner';
 import { PrayerProvider } from './components/PrayerProvider';
 
 function AnimatedRoutes() {
@@ -30,6 +37,13 @@ function AnimatedRoutes() {
         <Route path="/duas" element={<PageWrapper><Duas /></PageWrapper>} />
         <Route path="/names" element={<PageWrapper><NamesOfAllah /></PageWrapper>} />
         <Route path="/azkar" element={<PageWrapper><Azkar /></PageWrapper>} />
+        <Route path="/hadith" element={<PageWrapper><Hadith /></PageWrapper>} />
+        <Route path="/mood-dua" element={<PageWrapper><MoodDua /></PageWrapper>} />
+        <Route path="/dua-wall" element={<PageWrapper><DuaWall /></PageWrapper>} />
+        <Route path="/live" element={<PageWrapper><LiveStream /></PageWrapper>} />
+        <Route path="/wellness" element={<PageWrapper><SunnahWellness /></PageWrapper>} />
+        <Route path="/khatam" element={<PageWrapper><KhatamPlanner /></PageWrapper>} />
+        <Route path="/scanner" element={<PageWrapper><HalalScanner /></PageWrapper>} />
         <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
