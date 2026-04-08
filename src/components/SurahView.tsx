@@ -6,6 +6,8 @@ import { cn } from '../lib/utils';
 import { RubElHizb, IslamicPattern } from './DecorativeIcons';
 import { awardKarma } from '../lib/karma';
 import { useAudio } from './AudioProvider';
+import { db_local } from '../lib/db';
+import { useLiveQuery } from 'dexie-react-hooks';
 
 interface Ayah {
   number: number;
@@ -71,6 +73,26 @@ export default function SurahView() {
     const fetchSurah = async () => {
       setLoading(true);
       try {
+        // Check local DB first
+        const localAyahs = await db_local.ayahs
+          .where('[surahNumber+ayahNumber]')
+          .between([Number(number), 0], [Number(number), 1000])
+          .toArray();
+
+        if (localAyahs.length > 0) {
+          // Reconstruct surah object from local data
+          // This is a simplified reconstruction
+          const arabicRes = await fetch(`https://api.alquran.cloud/v1/surah/${number}/quran-uthmani`);
+          const arabicData = await arabicRes.json();
+          setSurah(arabicData.data);
+          
+          setTranslation({
+            ayahs: localAyahs.map(a => ({ text: a.translation }))
+          });
+          setLoading(false);
+          return;
+        }
+
         const [arabicRes, transRes] = await Promise.all([
           fetch(`https://api.alquran.cloud/v1/surah/${number}/quran-uthmani`),
           fetch(`https://api.alquran.cloud/v1/surah/${number}/ur.jalandhry`),
@@ -80,6 +102,18 @@ export default function SurahView() {
         
         setSurah(arabicData.data);
         setTranslation(transData.data);
+
+        // Cache to local DB
+        const ayahsToCache = arabicData.data.ayahs.map((a: any, i: number) => ({
+          surahNumber: Number(number),
+          ayahNumber: a.numberInSurah,
+          text: a.text,
+          translation: transData.data.ayahs[i].text,
+          juz: a.juz,
+          page: a.page
+        }));
+        await db_local.ayahs.bulkPut(ayahsToCache);
+
       } catch (err) {
         console.error(err);
       } finally {
@@ -288,7 +322,7 @@ export default function SurahView() {
                   <p 
                     dir="rtl"
                     className={cn(
-                      "text-slate-600 font-medium leading-relaxed transition-all duration-500 text-right text-xl",
+                      "font-urdu leading-[2] transition-all duration-500 text-right text-2xl",
                       isReadingTranslation && playingAyah === ayah.number ? "text-emerald-800 font-black" : "text-slate-500"
                     )}
                   >

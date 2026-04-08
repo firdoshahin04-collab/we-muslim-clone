@@ -23,7 +23,7 @@ async function startServer() {
     res.json({ status: 'ok' });
   });
 
-  app.post('/api/whisper', upload.single('audio'), async (req, res) => {
+  app.post('/api/whisper', upload.single('audio'), async (req: any, res) => {
     if (!req.file) return res.status(400).json({ error: 'No audio file provided' });
     if (!process.env.OPENAI_API_KEY) return res.status(500).json({ error: 'OpenAI API key not configured' });
 

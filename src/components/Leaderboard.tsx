@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { collection, query, orderBy, limit, onSnapshot } from 'firebase/firestore';
-import { db } from '../firebase';
+import { db } from '../lib/firebase';
 import { motion, AnimatePresence } from 'motion/react';
 import { Trophy, Medal, Star, ChevronLeft, Search, Sparkles, Crown } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';

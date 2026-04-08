@@ -1,6 +1,6 @@
 import React from 'react';
 import { usePrayer, ADHAN_OPTIONS } from './PrayerProvider';
-import { Bell, BellOff, Volume2, Clock, ChevronRight, Settings as SettingsIcon, Shield, MapPin } from 'lucide-react';
+import { Bell, BellOff, Volume2, Clock, ChevronRight, Settings as SettingsIcon, Shield, MapPin, Sparkles } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../lib/utils';
 
@@ -164,6 +164,41 @@ export default function Settings() {
               transition={{ type: "spring", stiffness: 500, damping: 30 }}
               className="w-6 h-6 bg-white rounded-full shadow-md"
             />
+          </button>
+        </div>
+      </motion.section>
+
+      {/* Fasting Notifications */}
+      <motion.section 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.35 }}
+        className="bg-white p-7 rounded-[40px] border border-slate-100 shadow-sm"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <div className="w-14 h-14 rounded-[22px] bg-amber-50 text-amber-600 flex items-center justify-center shadow-inner">
+              <Sparkles size={26} />
+            </div>
+            <div>
+              <h3 className="font-black text-slate-800 tracking-tight">Fasting Reminders</h3>
+              <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Sunnah Fasting (Mon/Thu)</p>
+            </div>
+          </div>
+          <button 
+            onClick={async () => {
+              if (!("Notification" in window)) {
+                alert("This browser does not support notifications.");
+                return;
+              }
+              const permission = await Notification.requestPermission();
+              if (permission === "granted") {
+                alert("MashaAllah! You will now receive Sunnah fasting reminders.");
+              }
+            }}
+            className="px-6 py-3 bg-amber-500 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-amber-100"
+          >
+            Enable
           </button>
         </div>
       </motion.section>

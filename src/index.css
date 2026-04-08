@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Amiri:wght@400;700&family=Noto+Nastaliq+Urdu:wght@400;700&family=Outfit:wght@400;500;600;700;800;900&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-arabic: "Amiri", serif;
+  --font-urdu: "Noto Nastaliq Urdu", serif;
   
   --color-emerald-50: #ecfdf5;
   --color-emerald-100: #d1fae5;
@@ -74,6 +75,10 @@ body {
 
 .font-arabic {
   font-family: var(--font-arabic);
+}
+
+.font-urdu {
+  font-family: var(--font-urdu);
 }
 
 /* Islamic Geometric Pattern */

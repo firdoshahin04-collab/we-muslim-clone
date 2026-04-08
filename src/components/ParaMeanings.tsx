@@ -139,6 +139,16 @@ export default function ParaMeanings() {
     if (url) {
       playTrack(url, selectedPara?.englishName || "Quran", `Ayah ${verse.numberInSurah} (${isTranslation ? 'Urdu' : 'Arabic'})`);
       setIsReadingTranslation(isTranslation);
+
+      // Update last read surah
+      if (selectedPara) {
+        localStorage.setItem('lastReadSurah', JSON.stringify({
+          number: selectedPara.type === 'surah' ? selectedPara.number : (verse.surah?.number || verse.surah),
+          englishName: selectedPara.type === 'surah' ? selectedPara.englishName : (verse.surah?.englishName || `Juz ${selectedPara.number}`),
+          ayahNumber: verse.numberInSurah,
+          timestamp: new Date().toISOString()
+        }));
+      }
     } else {
       console.error("No audio URL found for verse", verseIndex);
       // Skip to next if no URL
@@ -426,7 +436,7 @@ export default function ParaMeanings() {
                         >
                           <p className="text-right text-3xl font-arabic mb-6 leading-relaxed text-slate-800 font-bold" dir="rtl">{v.text}</p>
                           <p className={cn(
-                            "text-lg font-medium leading-relaxed text-right",
+                            "font-urdu leading-[2] transition-all duration-500 text-right text-2xl",
                             currentVerseIndex === i && isReadingTranslation ? "text-emerald-800 font-black" : "text-slate-500"
                           )}>
                             {translationVerses[i]?.text || v.text}
