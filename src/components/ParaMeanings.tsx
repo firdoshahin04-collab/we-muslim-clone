@@ -115,21 +115,18 @@ export default function ParaMeanings() {
     let url = "";
     
     if (isTranslation) {
-      url = urduAudioVerse?.audio || "";
-      if (!url) {
-        // Fallback to EveryAyah
-        let sNum = 1;
-        if (selectedPara?.type === 'surah') {
-          sNum = selectedPara.number;
-        } else if (verse.surah && typeof verse.surah.number === 'number') {
-          sNum = verse.surah.number;
-        } else if (typeof verse.surah === 'number') {
-          sNum = verse.surah;
-        }
-        const surahNum = String(sNum).padStart(3, '0');
-        const ayahNum = String(verse.numberInSurah).padStart(3, '0');
-        url = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
+      // Use EveryAyah as the primary source for Urdu as it's more reliable
+      let sNum = 1;
+      if (selectedPara?.type === 'surah') {
+        sNum = selectedPara.number;
+      } else if (verse.surah && typeof verse.surah.number === 'number') {
+        sNum = verse.surah.number;
+      } else if (typeof verse.surah === 'number') {
+        sNum = verse.surah;
       }
+      const surahNum = String(sNum).padStart(3, '0');
+      const ayahNum = String(verse.numberInSurah).padStart(3, '0');
+      url = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
     } else {
       // Use the audio property from the API if available, otherwise fallback
       url = verse.audio || `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verse.number}.mp3`;

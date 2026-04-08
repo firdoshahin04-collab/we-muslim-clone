@@ -44,16 +44,24 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (onEndedRef.current) onEndedRef.current();
     };
 
+    const handleError = (e: Event) => {
+      const target = e.target as HTMLAudioElement;
+      console.error("Audio element error:", target.error?.message, "Source:", target.src);
+      setIsPlaying(false);
+    };
+
     audio.addEventListener('timeupdate', updateProgress);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('loadedmetadata', updateProgress);
+    audio.addEventListener('error', handleError);
 
     return () => {
       audio.removeEventListener('timeupdate', updateProgress);
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('loadedmetadata', updateProgress);
+      audio.removeEventListener('error', handleError);
       audio.pause();
-      audio.src = ""; // Clear source to avoid memory leaks and interruptions
+      audio.src = "";
       audioRef.current = null;
     };
   }, []);
@@ -61,8 +69,16 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const playTrack = React.useCallback(async (url: string, title: string, subtitle: string) => {
     if (!audioRef.current) return;
 
+    if (!url || typeof url !== 'string' || url.trim() === '') {
+      console.error("Invalid audio URL provided:", url);
+      return;
+    }
+
+    // Ensure HTTPS
+    const secureUrl = url.startsWith('http:') ? url.replace('http:', 'https:') : url;
+
     // If same track, just resume
-    if (currentTrack === url) {
+    if (currentTrack === secureUrl) {
       resumeTrack();
       return;
     }
@@ -78,10 +94,11 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     
     audioRef.current.pause();
 
-    setCurrentTrack(url);
+    setCurrentTrack(secureUrl);
     setTrackTitle(title);
     setTrackSubtitle(subtitle);
-    audioRef.current.src = url;
+    audioRef.current.src = secureUrl;
+    audioRef.current.load(); // Force load new source
     
     try {
       const promise = audioRef.current.play();
@@ -90,7 +107,7 @@ export const AudioProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setIsPlaying(true);
     } catch (error) {
       if (error instanceof Error && error.name !== 'AbortError') {
-        console.error("Audio playback failed:", error);
+        console.error("Audio playback failed for URL:", secureUrl, error);
       }
       setIsPlaying(false);
     }

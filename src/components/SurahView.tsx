@@ -108,7 +108,11 @@ export default function SurahView() {
   const playUrduOnly = (ayahIndex: number) => {
     if (!surah || !translation) return;
     const ayah = surah.ayahs[ayahIndex];
-    const urduAudioUrl = `https://cdn.islamic.network/quran/audio/128/ur.khan/${ayah.number}.mp3`;
+    
+    // Use EveryAyah as a more reliable fallback for Urdu
+    const surahNum = String(surah.number).padStart(3, '0');
+    const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
+    const urduAudioUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
     
     if (currentTrack === urduAudioUrl && isGlobalPlaying) {
       pauseTrack();
@@ -123,7 +127,9 @@ export default function SurahView() {
   const playSequentialAudio = (ayahIndex: number) => {
     if (!surah) return;
     const ayah = surah.ayahs[ayahIndex];
-    const arabicAudioUrl = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayah.number}.mp3`;
+    
+    // Use the audio URL from the object if it exists, otherwise construct it
+    const arabicAudioUrl = ayah.audio || `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayah.number}.mp3`;
     
     if (currentTrack === arabicAudioUrl && isGlobalPlaying) {
       pauseTrack();
