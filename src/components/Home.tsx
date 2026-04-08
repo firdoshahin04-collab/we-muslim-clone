@@ -33,8 +33,6 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState('');
   const [lastRead, setLastRead] = useState<any>(null);
   const [userKarma, setUserKarma] = useState<any>(null);
-  const [isLoggingIn, setIsLoggingIn] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const [user, setUser] = useState(auth.currentUser);
 
   useEffect(() => {
@@ -43,23 +41,11 @@ export default function Home() {
   }, []);
 
   const handleLogin = async () => {
-    if (isLoggingIn) return;
-    setIsLoggingIn(true);
-    setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error: any) {
+    } catch (error) {
       console.error("Login failed:", error);
-      if (error.code === 'auth/popup-blocked') {
-        alert("Popup blocked! Please allow popups for this site in your browser settings.");
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // Ignore cancellation
-      } else {
-        alert("Login failed. Please try again.");
-      }
-    } finally {
-      setIsLoggingIn(false);
     }
   };
 
@@ -209,14 +195,10 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLogin}
-                disabled={isLoggingIn}
-                className={cn(
-                  "w-12 h-12 glass rounded-2xl flex items-center justify-center transition-all",
-                  isLoggingIn ? "text-slate-300" : "text-emerald-600 hover:bg-emerald-50"
-                )}
+                className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-emerald-600 hover:bg-emerald-50 transition-all"
                 title="Login"
               >
-                <LogIn size={20} strokeWidth={2.5} className={cn(isLoggingIn && "animate-pulse")} />
+                <LogIn size={20} strokeWidth={2.5} />
               </motion.button>
             )}
             <motion.button 
