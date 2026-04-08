@@ -35,6 +35,7 @@ export default function ParaMeanings() {
   const [loading, setLoading] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const playPromiseRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     if (selectedPara) {
@@ -46,7 +47,12 @@ export default function ParaMeanings() {
     }
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause();
+        const oldAudio = audioRef.current;
+        if (playPromiseRef.current) {
+          playPromiseRef.current.then(() => oldAudio.pause()).catch(() => {});
+        } else {
+          oldAudio.pause();
+        }
         audioRef.current = null;
       }
     };
@@ -144,9 +150,18 @@ export default function ParaMeanings() {
     }
 
     if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current.onended = null;
-      audioRef.current.onerror = null;
+      const oldAudio = audioRef.current;
+      if (playPromiseRef.current) {
+        playPromiseRef.current.then(() => {
+          oldAudio.pause();
+          oldAudio.currentTime = 0;
+        }).catch(() => {});
+      } else {
+        oldAudio.pause();
+        oldAudio.currentTime = 0;
+      }
+      oldAudio.onended = null;
+      oldAudio.onerror = null;
     }
 
     const handleNextStep = () => {
@@ -189,28 +204,45 @@ export default function ParaMeanings() {
     setIsPlaying(true);
     setIsReadingTranslation(isTranslation);
     
-    audio.play().catch(err => {
-      console.error(`Audio play failed (${isTranslation ? 'Urdu' : 'Arabic'}):`, err, "URL:", url);
-      handleFallback();
+    const playPromise = audio.play();
+    playPromiseRef.current = playPromise;
+    playPromise.catch(err => {
+      if (err.name !== 'AbortError') {
+        console.error(`Audio play failed (${isTranslation ? 'Urdu' : 'Arabic'}):`, err, "URL:", url);
+        handleFallback();
+      }
     });
 
     audio.onerror = () => {
+      playPromiseRef.current = null;
       console.error(`Audio load failed (${isTranslation ? 'Urdu' : 'Arabic'}):`, url);
       handleFallback();
     };
 
     audio.onended = () => {
+      playPromiseRef.current = null;
       handleNextStep();
     };
   };
 
   const handlePlayPause = () => {
     if (isPlaying) {
-      audioRef.current?.pause();
+      if (audioRef.current) {
+        const oldAudio = audioRef.current;
+        if (playPromiseRef.current) {
+          playPromiseRef.current.then(() => oldAudio.pause()).catch(() => {});
+        } else {
+          oldAudio.pause();
+        }
+      }
       setIsPlaying(false);
     } else {
       if (audioRef.current) {
-        audioRef.current.play();
+        const playPromise = audioRef.current.play();
+        playPromiseRef.current = playPromise;
+        playPromise.catch(err => {
+          if (err.name !== 'AbortError') console.error("Playback failed:", err);
+        });
         setIsPlaying(true);
       } else {
         playAudio(currentVerseIndex, isReadingTranslation);

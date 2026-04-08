@@ -18,6 +18,8 @@ export default function DuaWall() {
   const [newDua, setNewDua] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const [user, setUser] = useState(auth.currentUser);
 
   useEffect(() => {
@@ -26,11 +28,23 @@ export default function DuaWall() {
   }, []);
 
   const handleLogin = async () => {
+    if (isLoggingIn) return;
+    setIsLoggingIn(true);
+    setAuthError(null);
     const provider = new GoogleAuthProvider();
     try {
       await signInWithPopup(auth, provider);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login failed:", error);
+      if (error.code === 'auth/popup-blocked') {
+        setAuthError("Popup blocked! Please allow popups for this site in your browser settings.");
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // Ignore cancellation
+      } else {
+        setAuthError("Login failed. Please try again.");
+      }
+    } finally {
+      setIsLoggingIn(false);
     }
   };
 
@@ -96,11 +110,17 @@ export default function DuaWall() {
             <h3 className="font-bold text-slate-800">Sign in to post</h3>
             <p className="text-sm text-slate-500">Join the community and share your prayers.</p>
           </div>
+          {authError && (
+            <p className="text-xs text-rose-500 bg-rose-50 p-3 rounded-xl border border-rose-100">
+              {authError}
+            </p>
+          )}
           <button
             onClick={handleLogin}
-            className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-200"
+            disabled={isLoggingIn}
+            className="px-8 py-3 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 disabled:opacity-50 transition-all shadow-lg shadow-emerald-200"
           >
-            Login with Google
+            {isLoggingIn ? "Connecting..." : "Login with Google"}
           </button>
         </div>
       ) : (
