@@ -1,15 +1,16 @@
 import { useState, useEffect, useMemo } from 'react';
-import { format } from 'date-fns';
+import { format, subDays, startOfDay } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play, MessageSquare, Radio, Activity, Target, ShieldCheck, Trophy, Zap, LogIn, LogOut } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play, MessageSquare, Radio, Activity, Target, ShieldCheck, Trophy, Zap, LogIn, LogOut, BarChart2, Calculator } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { RubElHizb, CrescentStar, IslamicPattern } from './DecorativeIcons';
-import { db, auth } from '../lib/firebase';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc } from 'firebase/firestore';
 import { awardKarma } from '../lib/karma';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
 const DAILY_VERSES = [
   { arabic: "فَإِنَّ مَعَ الْعُسْرِ يُسْرًا", meaning: "For indeed, with hardship [will be] ease.", reference: "94:5" },
@@ -27,15 +28,17 @@ const DAILY_DUAS = [
 ];
 
 export default function Home() {
-  const { times, location, isAdhanPlaying, stopAdhan } = usePrayer();
+  const { times, location, isAdhanPlaying, stopAdhan, prayerHistory, checkInPrayer, isMosqueModeActive } = usePrayer();
   const [currentTime, setCurrentTime] = useState(new Date());
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [lastRead, setLastRead] = useState<any>(null);
   const [userKarma, setUserKarma] = useState<any>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [user, setUser] = useState(auth.currentUser);
+  const [showChart, setShowChart] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((u) => setUser(u));
@@ -85,8 +88,10 @@ export default function Home() {
           displayName: auth.currentUser?.displayName || 'User',
           karmaPoints: 0,
           level: 'Novice'
-        });
+        }).catch(err => handleFirestoreError(err, OperationType.WRITE, `users/${auth.currentUser?.uid}`));
       }
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, `users/${auth.currentUser?.uid}`);
     });
     
     return () => unsubscribe();
@@ -128,6 +133,22 @@ export default function Home() {
     return new Intl.DateTimeFormat('en-u-ca-islamic-uma', { day: 'numeric', month: 'long', year: 'numeric' }).format(currentTime);
   }, [currentTime]);
 
+  const chartData = useMemo(() => {
+    const data = [];
+    for (let i = 6; i >= 0; i--) {
+      const date = subDays(new Date(), i);
+      const dateKey = format(date, 'yyyy-MM-dd');
+      const dayHistory = prayerHistory[dateKey] || {};
+      const count = Object.values(dayHistory).filter(Boolean).length;
+      data.push({
+        name: format(date, 'EEE'),
+        count,
+        fullDate: dateKey
+      });
+    }
+    return data;
+  }, [prayerHistory]);
+
   if (!times) return (
     <div className="flex flex-col items-center justify-center h-screen gap-4">
       <div className="w-12 h-12 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin" />
@@ -147,11 +168,8 @@ export default function Home() {
   const currentPrayer = times.current === 'none' ? 'Isha' : times.current;
 
   const togglePrayer = (name: string) => {
-    const isDone = prayersDone.includes(name);
-    setPrayersDone(prev => isDone ? prev.filter(p => p !== name) : [...prev, name]);
-    if (!isDone) {
-      awardKarma(10); // Small reward for each prayer
-    }
+    checkInPrayer(name.toLowerCase());
+    awardKarma(10);
   };
 
   const handleMosqueCheckIn = async () => {
@@ -222,13 +240,26 @@ export default function Home() {
             <motion.button 
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                if (navigator.share) {
-                  navigator.share({
-                    title: 'Islamic Hub',
-                    text: 'Check out this amazing Islamic app!',
-                    url: window.location.href,
-                  });
+              onClick={async () => {
+                if (isSharing) return;
+                setIsSharing(true);
+                try {
+                  if (navigator.share) {
+                    await navigator.share({
+                      title: 'Islamic Hub',
+                      text: 'Check out this amazing Islamic app!',
+                      url: window.location.href,
+                    });
+                  } else {
+                    await navigator.clipboard.writeText(`Check out this amazing Islamic app! ${window.location.href}`);
+                    alert("Link copied to clipboard!");
+                  }
+                } catch (error: any) {
+                  if (error.name !== 'AbortError') {
+                    console.error('Error sharing:', error);
+                  }
+                } finally {
+                  setIsSharing(false);
                 }
               }}
               className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-slate-500 hover:text-emerald-600 transition-all"
@@ -284,6 +315,7 @@ export default function Home() {
           { id: 'duas', title: 'Daily Duas', icon: Heart, color: 'bg-rose-50', iconColor: 'text-rose-600', path: '/duas', description: 'Supplications' },
           { id: 'azkar', title: 'Azkar', icon: Moon, color: 'bg-indigo-50', iconColor: 'text-indigo-600', path: '/azkar', description: 'Remembrance' },
           { id: 'nearby', title: 'Nearby', icon: MapPin, color: 'bg-blue-50', iconColor: 'text-blue-600', path: '/nearby', description: 'Find Masjids' },
+          { id: 'zakat', title: 'Zakat', icon: Calculator, color: 'bg-emerald-50', iconColor: 'text-emerald-600', path: '/zakat', description: 'Calculator' },
           { id: 'hadith', title: 'Hadith', icon: Quote, color: 'bg-amber-50', iconColor: 'text-amber-600', path: '/hadith', description: 'Hadith Library' },
           { id: 'tasbih', title: 'Tasbih', icon: Fingerprint, color: 'bg-slate-50', iconColor: 'text-slate-600', path: '/tasbih', description: 'Digital Counter' },
         ].map((feature) => (
@@ -311,6 +343,7 @@ export default function Home() {
               feature.id === 'dua-wall' ? 'group-hover:bg-rose-500' :
               feature.id === 'live' ? 'group-hover:bg-blue-500' :
               feature.id === 'wellness' ? 'group-hover:bg-emerald-500' :
+              feature.id === 'zakat' ? 'group-hover:bg-emerald-500' :
               feature.id === 'khatam' ? 'group-hover:bg-amber-500' :
               feature.id === 'scanner' ? 'group-hover:bg-slate-500' : 'group-hover:bg-slate-500'
             )}>
@@ -431,6 +464,7 @@ export default function Home() {
             >
               {times.timeForNext ? (() => {
                 const diff = times.timeForNext.getTime() - currentTime.getTime();
+                if (diff < 0) return "00:00:00";
                 const hours = Math.floor(diff / 3600000);
                 const minutes = Math.floor((diff % 3600000) / 60000);
                 const seconds = Math.floor((diff % 60000) / 1000);
@@ -438,6 +472,25 @@ export default function Home() {
               })() : '--:--:--'}
             </motion.h2>
           </div>
+
+          <AnimatePresence>
+            {isMosqueModeActive && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="mb-4 bg-emerald-500/20 border border-emerald-500/30 rounded-2xl p-3 flex items-center gap-3"
+              >
+                <div className="w-8 h-8 bg-emerald-500 rounded-xl flex items-center justify-center">
+                  <VolumeX size={16} className="text-white" />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-emerald-400">Mosque Mode Active</p>
+                  <p className="text-xs font-bold text-white">Phone is auto-silenced</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <div className="flex items-center justify-between pt-6 border-t border-white/5">
             <div className="flex items-center gap-3">
@@ -469,32 +522,101 @@ export default function Home() {
             <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full" />
             <h3 className="text-[11px] font-black text-slate-800 uppercase tracking-[0.3em]">Daily Progress</h3>
           </div>
-          <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{prayersDone.length}/5 Prayers</p>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => setShowChart(!showChart)}
+              className="p-2 bg-slate-50 text-slate-500 rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all"
+            >
+              <BarChart2 size={16} />
+            </button>
+            <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">
+              {Object.values(prayerHistory[format(new Date(), 'yyyy-MM-dd')] || {}).filter(Boolean).length}/5 Prayers
+            </p>
+          </div>
         </div>
 
-        <div className="flex justify-between gap-2">
-          {['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'].map((p) => (
-            <button 
-              key={p}
-              onClick={() => togglePrayer(p)}
-              className={cn(
-                "flex-1 aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border",
-                prayersDone.includes(p) 
-                  ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-100" 
-                  : "bg-slate-50 border-slate-100 text-slate-400 hover:border-emerald-200"
-              )}
+        <AnimatePresence mode="wait">
+          {showChart ? (
+            <motion.div 
+              key="chart"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 200 }}
+              exit={{ opacity: 0, height: 0 }}
+              className="w-full"
             >
-              <p className="text-[8px] font-black uppercase tracking-tighter">{p}</p>
-              {prayersDone.includes(p) ? <Check size={14} strokeWidth={3} /> : <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" />}
-            </button>
-          ))}
-        </div>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fontWeight: 700, fill: '#94a3b8' }} 
+                  />
+                  <YAxis hide domain={[0, 5]} />
+                  <Tooltip 
+                    cursor={{ fill: '#f8fafc' }}
+                    content={({ active, payload }) => {
+                      if (active && payload && payload.length) {
+                        return (
+                          <div className="bg-white p-3 rounded-2xl shadow-xl border border-slate-100">
+                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{payload[0].payload.fullDate}</p>
+                            <p className="text-sm font-black text-emerald-600">{payload[0].value} Prayers Done</p>
+                          </div>
+                        );
+                      }
+                      return null;
+                    }}
+                  />
+                  <Bar dataKey="count" radius={[10, 10, 10, 10]}>
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.count === 5 ? '#10b981' : '#34d399'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </motion.div>
+          ) : (
+            <motion.div 
+              key="buttons"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="flex justify-between gap-2"
+            >
+              {['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'].map((p) => {
+                const isDone = (prayerHistory[format(new Date(), 'yyyy-MM-dd')] || {})[p.toLowerCase()];
+                const prayerTime = times[p.toLowerCase()];
+                const isFuture = prayerTime && new Date() < prayerTime;
+
+                return (
+                  <button 
+                    key={p}
+                    disabled={isFuture || isDone}
+                    onClick={() => togglePrayer(p)}
+                    className={cn(
+                      "flex-1 aspect-square rounded-2xl flex flex-col items-center justify-center gap-1 transition-all border",
+                      isDone 
+                        ? "bg-emerald-600 border-emerald-500 text-white shadow-lg shadow-emerald-100" 
+                        : isFuture
+                          ? "bg-slate-50 border-slate-50 text-slate-200 cursor-not-allowed"
+                          : "bg-slate-50 border-slate-100 text-slate-400 hover:border-emerald-200"
+                    )}
+                  >
+                    <p className="text-[8px] font-black uppercase tracking-tighter">{p}</p>
+                    {isDone ? <Check size={14} strokeWidth={3} /> : <div className="w-3.5 h-3.5 rounded-full border-2 border-slate-200" />}
+                  </button>
+                );
+              })}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="mt-6 h-2 bg-slate-50 rounded-full overflow-hidden">
           <motion.div 
             className="h-full bg-emerald-500 rounded-full"
             initial={{ width: 0 }}
-            animate={{ width: `${(prayersDone.length / 5) * 100}%` }}
+            animate={{ width: `${(Object.values(prayerHistory[format(new Date(), 'yyyy-MM-dd')] || {}).filter(Boolean).length / 5) * 100}%` }}
           />
         </div>
       </motion.section>

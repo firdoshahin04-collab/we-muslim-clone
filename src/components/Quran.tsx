@@ -18,6 +18,14 @@ export default function Quran() {
   const [surahs, setSurahs] = useState<Surah[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [lastRead, setLastRead] = useState<any>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('lastReadSurah');
+    if (saved) {
+      setLastRead(JSON.parse(saved));
+    }
+  }, []);
 
   useEffect(() => {
     fetch('https://api.alquran.cloud/v1/surah')
@@ -77,19 +85,27 @@ export default function Quran() {
                 <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center">
                   <Sparkles size={18} className="text-emerald-400" />
                 </div>
-                <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.4em]">Surah of the Day</p>
+                <p className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.4em]">
+                  {lastRead ? 'Continue Reading' : 'Surah of the Day'}
+                </p>
               </div>
               <div>
-                <h2 className="text-4xl font-black tracking-tighter mb-1">Al-Kahf</h2>
-                <p className="text-emerald-100/60 text-xs font-bold uppercase tracking-widest">The Cave • 110 Verses</p>
+                <h2 className="text-4xl font-black tracking-tighter mb-1">
+                  {lastRead ? lastRead.englishName : 'Al-Kahf'}
+                </h2>
+                <p className="text-emerald-100/60 text-xs font-bold uppercase tracking-widest">
+                  {lastRead 
+                    ? `Verse ${lastRead.ayahNumber} • Last read ${new Date(lastRead.timestamp).toLocaleDateString()}`
+                    : 'The Cave • 110 Verses'}
+                </p>
               </div>
               <motion.button 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => navigate('/surah/18')}
+                onClick={() => navigate(lastRead ? `/surah/${lastRead.number}` : '/surah/18')}
                 className="w-full py-5 bg-emerald-600 rounded-[24px] text-center font-black uppercase tracking-widest text-sm hover:bg-emerald-500 transition-all shadow-xl shadow-emerald-900/20"
               >
-                Continue Reading
+                {lastRead ? 'Resume Reading' : 'Start Reading'}
               </motion.button>
             </div>
             <div className="absolute -right-20 -bottom-20 w-80 h-80 bg-emerald-600/20 rounded-full blur-[100px]" />

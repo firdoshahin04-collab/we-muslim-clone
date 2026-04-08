@@ -19,7 +19,9 @@ import LiveStream from './components/LiveStream';
 import SunnahWellness from './components/SunnahWellness';
 import KhatamPlanner from './components/KhatamPlanner';
 import HalalScanner from './components/HalalScanner';
+import ZakatCalculator from './components/ZakatCalculator';
 import { PrayerProvider } from './components/PrayerProvider';
+import { AudioProvider } from './components/AudioProvider';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -44,6 +46,7 @@ function AnimatedRoutes() {
         <Route path="/wellness" element={<PageWrapper><SunnahWellness /></PageWrapper>} />
         <Route path="/khatam" element={<PageWrapper><KhatamPlanner /></PageWrapper>} />
         <Route path="/scanner" element={<PageWrapper><HalalScanner /></PageWrapper>} />
+        <Route path="/zakat" element={<PageWrapper><ZakatCalculator /></PageWrapper>} />
         <Route path="/settings" element={<PageWrapper><Settings /></PageWrapper>} />
       </Routes>
     </AnimatePresence>
@@ -72,11 +75,13 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
 export default function App() {
   return (
     <PrayerProvider>
-      <BrowserRouter>
-        <Layout>
-          <AnimatedRoutes />
-        </Layout>
-      </BrowserRouter>
+      <AudioProvider>
+        <BrowserRouter>
+          <Layout>
+            <AnimatedRoutes />
+          </Layout>
+        </BrowserRouter>
+      </AudioProvider>
     </PrayerProvider>
   );
 }

@@ -1,7 +1,8 @@
-import { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, SkipBack, List, Music, Volume2, ChevronDown, MoreHorizontal, Heart, Shuffle, Repeat } from 'lucide-react';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { Play, Pause, SkipForward, SkipBack, List, Music, Volume2, ChevronDown, MoreHorizontal, Heart, Shuffle, Repeat, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
+import { useAudio } from './AudioProvider';
 
 interface Para {
   number: number;
@@ -26,7 +27,7 @@ const PARAS: Para[] = [
 
 export default function ParaMeanings() {
   const [selectedPara, setSelectedPara] = useState<Para | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const { playTrack, pauseTrack, resumeTrack, isPlaying: isGlobalPlaying, currentTrack, setOnEnded } = useAudio();
   const [currentVerseIndex, setCurrentVerseIndex] = useState(0);
   const [verses, setVerses] = useState<any[]>([]);
   const [translationVerses, setTranslationVerses] = useState<any[]>([]);
@@ -34,8 +35,7 @@ export default function ParaMeanings() {
   const [isReadingTranslation, setIsReadingTranslation] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPlayer, setShowPlayer] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const playPromiseRef = useRef<Promise<void> | null>(null);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     if (selectedPara) {
@@ -45,17 +45,6 @@ export default function ParaMeanings() {
         fetchSurahVerses(selectedPara.number);
       }
     }
-    return () => {
-      if (audioRef.current) {
-        const oldAudio = audioRef.current;
-        if (playPromiseRef.current) {
-          playPromiseRef.current.then(() => oldAudio.pause()).catch(() => {});
-        } else {
-          oldAudio.pause();
-        }
-        audioRef.current = null;
-      }
-    };
   }, [selectedPara]);
 
   const fetchParaVerses = async (juzNumber: number) => {
@@ -118,18 +107,17 @@ export default function ParaMeanings() {
     }
   }, [currentVerseIndex, showLyrics]);
 
-  const playAudio = (verseIndex: number, isTranslation: boolean) => {
+  const playVerseAudio = useCallback((verseIndex: number, isTranslation: boolean) => {
     if (verses.length === 0) return;
     
     const verse = verses[verseIndex];
-    const transVerse = translationVerses[verseIndex];
     const urduAudioVerse = urduAudioVerses[verseIndex];
     let url = "";
     
     if (isTranslation) {
-      // Try ur.khan first, then transVerse.audio, then everyayah
-      url = urduAudioVerse?.audio || transVerse?.audio || "";
+      url = urduAudioVerse?.audio || "";
       if (!url) {
+        // Fallback to EveryAyah
         let sNum = 1;
         if (selectedPara?.type === 'surah') {
           sNum = selectedPara.number;
@@ -142,110 +130,55 @@ export default function ParaMeanings() {
         const ayahNum = String(verse.numberInSurah).padStart(3, '0');
         url = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
       }
-      // Ensure https
-      if (url && url.startsWith('http:')) url = url.replace('http:', 'https:');
     } else {
+      // Use the audio property from the API if available, otherwise fallback
       url = verse.audio || `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${verse.number}.mp3`;
-      if (url && url.startsWith('http:')) url = url.replace('http:', 'https:');
     }
 
-    if (audioRef.current) {
-      const oldAudio = audioRef.current;
-      if (playPromiseRef.current) {
-        playPromiseRef.current.then(() => {
-          oldAudio.pause();
-          oldAudio.currentTime = 0;
-        }).catch(() => {});
-      } else {
-        oldAudio.pause();
-        oldAudio.currentTime = 0;
-      }
-      oldAudio.onended = null;
-      oldAudio.onerror = null;
-    }
+    if (url && url.startsWith('http:')) url = url.replace('http:', 'https:');
 
-    const handleNextStep = () => {
-      if (!isTranslation) {
-        // Play Urdu after Arabic for the same verse
-        playAudio(verseIndex, true);
-      } else {
-        // Play next verse Arabic
-        if (verseIndex < verses.length - 1) {
-          setCurrentVerseIndex(verseIndex + 1);
-          playAudio(verseIndex + 1, false);
-        } else {
-          setIsPlaying(false);
-        }
-      }
-    };
+    console.log(`Playing ${isTranslation ? 'translation' : 'verse'} ${verseIndex}: ${url}`);
 
-    const handleFallback = () => {
-      if (isTranslation && transVerse?.text) {
-        console.log("Urdu audio failed, using TTS fallback...");
-        const utterance = new SpeechSynthesisUtterance(transVerse.text);
-        utterance.lang = 'ur-PK';
-        utterance.onstart = () => setIsPlaying(true);
-        utterance.onend = () => {
-          handleNextStep();
-        };
-        window.speechSynthesis.speak(utterance);
-      } else {
-        handleNextStep();
-      }
-    };
-
-    if (!url) {
-      handleFallback();
-      return;
-    }
-
-    const audio = new Audio(url);
-    audioRef.current = audio;
-    setIsPlaying(true);
-    setIsReadingTranslation(isTranslation);
-    
-    const playPromise = audio.play();
-    playPromiseRef.current = playPromise;
-    playPromise.catch(err => {
-      if (err.name !== 'AbortError') {
-        console.error(`Audio play failed (${isTranslation ? 'Urdu' : 'Arabic'}):`, err, "URL:", url);
-        handleFallback();
-      }
-    });
-
-    audio.onerror = () => {
-      playPromiseRef.current = null;
-      console.error(`Audio load failed (${isTranslation ? 'Urdu' : 'Arabic'}):`, url);
-      handleFallback();
-    };
-
-    audio.onended = () => {
-      playPromiseRef.current = null;
+    if (url) {
+      playTrack(url, selectedPara?.englishName || "Quran", `Ayah ${verse.numberInSurah} (${isTranslation ? 'Urdu' : 'Arabic'})`);
+      setIsReadingTranslation(isTranslation);
+    } else {
+      console.error("No audio URL found for verse", verseIndex);
+      // Skip to next if no URL
       handleNextStep();
-    };
-  };
+    }
+  }, [verses, urduAudioVerses, selectedPara, playTrack]);
+
+  const handleNextStep = useCallback(() => {
+    if (!isReadingTranslation) {
+      // After Arabic, play Urdu
+      playVerseAudio(currentVerseIndex, true);
+    } else {
+      // After Urdu, play next Arabic verse
+      if (currentVerseIndex < verses.length - 1) {
+        const nextIndex = currentVerseIndex + 1;
+        setCurrentVerseIndex(nextIndex);
+        playVerseAudio(nextIndex, false);
+      } else {
+        console.log("Reached end of Para/Surah");
+      }
+    }
+  }, [isReadingTranslation, currentVerseIndex, verses.length, playVerseAudio]);
+
+  useEffect(() => {
+    // Correctly set the callback to be called by AudioProvider
+    setOnEnded(() => handleNextStep);
+    return () => setOnEnded(undefined);
+  }, [handleNextStep, setOnEnded]);
 
   const handlePlayPause = () => {
-    if (isPlaying) {
-      if (audioRef.current) {
-        const oldAudio = audioRef.current;
-        if (playPromiseRef.current) {
-          playPromiseRef.current.then(() => oldAudio.pause()).catch(() => {});
-        } else {
-          oldAudio.pause();
-        }
-      }
-      setIsPlaying(false);
+    if (isGlobalPlaying) {
+      pauseTrack();
     } else {
-      if (audioRef.current) {
-        const playPromise = audioRef.current.play();
-        playPromiseRef.current = playPromise;
-        playPromise.catch(err => {
-          if (err.name !== 'AbortError') console.error("Playback failed:", err);
-        });
-        setIsPlaying(true);
+      if (currentTrack) {
+        resumeTrack();
       } else {
-        playAudio(currentVerseIndex, isReadingTranslation);
+        playVerseAudio(currentVerseIndex, isReadingTranslation);
       }
     }
   };
@@ -254,7 +187,7 @@ export default function ParaMeanings() {
     if (currentVerseIndex < verses.length - 1) {
       const nextIndex = currentVerseIndex + 1;
       setCurrentVerseIndex(nextIndex);
-      playAudio(nextIndex, false);
+      playVerseAudio(nextIndex, false);
     }
   };
 
@@ -262,22 +195,44 @@ export default function ParaMeanings() {
     if (currentVerseIndex > 0) {
       const prevIndex = currentVerseIndex - 1;
       setCurrentVerseIndex(prevIndex);
-      playAudio(prevIndex, false);
+      playVerseAudio(prevIndex, false);
     }
   };
 
   const openPlayer = (para: Para) => {
     setSelectedPara(para);
     setShowPlayer(true);
-    // Auto play will happen after verses are fetched in useEffect
   };
 
-  // Auto play when verses are loaded
   useEffect(() => {
-    if (verses.length > 0 && selectedPara && isPlaying === false && !audioRef.current) {
-      playAudio(0, false);
+    if (verses.length > 0 && selectedPara && isGlobalPlaying === false && !currentTrack) {
+      playVerseAudio(0, false);
     }
-  }, [verses]);
+  }, [verses, selectedPara, isGlobalPlaying, currentTrack, playVerseAudio]);
+
+  const handleShare = async () => {
+    if (!selectedPara || isSharing) return;
+    setIsSharing(true);
+    const shareText = `Listening to ${selectedPara.englishName} (${selectedPara.name}) on Quran App. Join me!`;
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Quran Recitation',
+          text: shareText,
+          url: window.location.href,
+        });
+      } else {
+        await navigator.clipboard.writeText(shareText);
+        alert("Link copied to clipboard!");
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error);
+      }
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   return (
     <div className="flex flex-col h-full bg-[#f8f9fb] overflow-hidden pb-24">
@@ -410,7 +365,7 @@ export default function ParaMeanings() {
                 onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
                 className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center text-slate-900 hover:scale-105 transition-transform shadow-lg"
               >
-                {isPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
+                {isGlobalPlaying ? <Pause size={24} fill="currentColor" /> : <Play size={24} fill="currentColor" className="ml-1" />}
               </button>
             </div>
           </motion.div>
@@ -441,9 +396,13 @@ export default function ParaMeanings() {
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-1">Now Playing</p>
                 <p className="text-xs font-black text-slate-800">{selectedPara.englishName}</p>
               </div>
-              <button className="p-3 text-slate-400">
-                <MoreHorizontal size={24} />
-              </button>
+              <motion.button 
+                whileTap={{ scale: 0.9 }}
+                onClick={handleShare}
+                className="p-3 bg-slate-50 text-slate-400 rounded-2xl"
+              >
+                <Share2 size={24} />
+              </motion.button>
             </header>
 
             <div className="flex-1 flex flex-col items-center justify-center px-8 relative z-10 overflow-hidden">
@@ -485,8 +444,8 @@ export default function ParaMeanings() {
                     <>
                       <motion.div 
                         animate={{ 
-                          scale: isPlaying ? 1 : 0.9,
-                          rotate: isPlaying ? [0, 1, -1, 0] : 0
+                          scale: isGlobalPlaying ? 1 : 0.9,
+                          rotate: isGlobalPlaying ? [0, 1, -1, 0] : 0
                         }}
                         transition={{ 
                           rotate: { repeat: Infinity, duration: 5, ease: "linear" }
@@ -561,7 +520,7 @@ export default function ParaMeanings() {
                     onClick={handlePlayPause}
                     className="w-20 h-20 bg-slate-900 rounded-[32px] flex items-center justify-center text-white shadow-2xl shadow-slate-400"
                   >
-                    {isPlaying ? <Pause size={36} fill="currentColor" /> : <Play size={36} fill="currentColor" className="ml-1" />}
+                    {isGlobalPlaying ? <Pause size={36} fill="currentColor" /> : <Play size={36} fill="currentColor" className="ml-1" />}
                   </motion.button>
                   <motion.button whileTap={{ scale: 0.8 }} onClick={handleNext} className="text-slate-800"><SkipForward size={32} fill="currentColor" /></motion.button>
                 </div>
@@ -576,7 +535,7 @@ export default function ParaMeanings() {
                   {[1, 2, 3].map(i => (
                     <motion.div 
                       key={i}
-                      animate={{ height: isPlaying ? [4, 12, 4] : 4 }}
+                      animate={{ height: isGlobalPlaying ? [4, 12, 4] : 4 }}
                       transition={{ repeat: Infinity, duration: 0.6, delay: i * 0.1 }}
                       className="w-1 bg-emerald-500 rounded-full"
                     />

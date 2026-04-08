@@ -4,6 +4,8 @@ import { format, addMinutes, isSameMinute, startOfDay, addDays } from 'date-fns'
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Capacitor } from '@capacitor/core';
 
+import { awardKarma } from '../lib/karma';
+
 interface PrayerOffsets {
   fajr: number;
   sunrise: number;
@@ -20,6 +22,12 @@ interface PrayerSettings {
   mosqueModeEnabled: boolean;
 }
 
+interface PrayerHistory {
+  [date: string]: {
+    [prayer: string]: boolean;
+  };
+}
+
 interface PrayerContextType {
   settings: PrayerSettings;
   updateOffsets: (offsets: Partial<PrayerOffsets>) => void;
@@ -31,6 +39,8 @@ interface PrayerContextType {
   isMosqueModeActive: boolean;
   times: any;
   location: { lat: number; lng: number } | null;
+  prayerHistory: PrayerHistory;
+  checkInPrayer: (prayer: string) => void;
 }
 
 const ADHAN_OPTIONS = [
@@ -55,12 +65,48 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
   });
 
+  const [prayerHistory, setPrayerHistory] = useState<PrayerHistory>(() => {
+    const saved = localStorage.getItem('prayer_history');
+    return saved ? JSON.parse(saved) : {};
+  });
+
   const [times, setTimes] = useState<any>(null);
   const [lastPlayed, setLastPlayed] = useState<string | null>(null);
   const [currentAudio, setCurrentAudio] = useState<HTMLAudioElement | null>(null);
   const [isAdhanPlaying, setIsAdhanPlaying] = useState(false);
   const [isMosqueModeActive, setIsMosqueModeActive] = useState(false);
   const adhanPlayPromiseRef = useRef<Promise<void> | null>(null);
+
+  useEffect(() => {
+    localStorage.setItem('prayer_history', JSON.stringify(prayerHistory));
+  }, [prayerHistory]);
+
+  const checkInPrayer = (prayer: string) => {
+    if (!times) return;
+
+    const now = new Date();
+    const prayerTime = times[prayer];
+    
+    // Only allow check-in if it's currently time for the prayer or it's in the past
+    if (now < prayerTime) {
+      console.warn("Cannot check in for a future prayer.");
+      return;
+    }
+
+    const dateKey = format(now, 'yyyy-MM-dd');
+    setPrayerHistory(prev => {
+      const dayHistory = prev[dateKey] || {};
+      if (dayHistory[prayer]) return prev; // Already checked in
+
+      return {
+        ...prev,
+        [dateKey]: {
+          ...dayHistory,
+          [prayer]: true
+        }
+      };
+    });
+  };
 
   // Request Notification Permissions
   useEffect(() => {
@@ -172,6 +218,7 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     if (!settings.adhanEnabled || !times) return;
 
     const checkAdhan = () => {
+      if (isMosqueModeActive) return;
       const now = new Date();
       const prayers = ['fajr', 'dhuhr', 'asr', 'maghrib', 'isha'];
       
@@ -201,7 +248,7 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     const interval = setInterval(checkAdhan, 30000); // Check every 30 seconds
     return () => clearInterval(interval);
-  }, [settings.adhanEnabled, settings.adhanAudio, times, lastPlayed]);
+  }, [settings.adhanEnabled, settings.adhanAudio, times, lastPlayed, isMosqueModeActive]);
 
   // Mosque Mode Geofencing (Mock implementation for web)
   useEffect(() => {
@@ -239,6 +286,18 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     checkGeofence();
     return () => clearInterval(interval);
   }, [settings.mosqueModeEnabled, location]);
+
+  useEffect(() => {
+    if (isMosqueModeActive) {
+      const today = format(new Date(), 'yyyy-MM-dd');
+      const lastAwarded = localStorage.getItem('last_mosque_karma');
+      if (lastAwarded !== today) {
+        awardKarma(100);
+        localStorage.setItem('last_mosque_karma', today);
+        console.log("Awarded mosque check-in karma");
+      }
+    }
+  }, [isMosqueModeActive]);
 
   const updateOffsets = (newOffsets: Partial<PrayerOffsets>) => {
     setSettings(prev => ({ ...prev, offsets: { ...prev.offsets, ...newOffsets } }));
@@ -285,7 +344,9 @@ export const PrayerProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       isAdhanPlaying, 
       isMosqueModeActive,
       times, 
-      location 
+      location,
+      prayerHistory,
+      checkInPrayer
     }}>
       {children}
     </PrayerContext.Provider>

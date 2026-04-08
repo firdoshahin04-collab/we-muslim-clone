@@ -1,10 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronLeft, Play, Pause, Volume2, Share2, Bookmark } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { RubElHizb, IslamicPattern } from './DecorativeIcons';
 import { awardKarma } from '../lib/karma';
+import { useAudio } from './AudioProvider';
 
 interface Ayah {
   number: number;
@@ -32,13 +33,11 @@ interface SurahDetail {
 export default function SurahView() {
   const { number } = useParams();
   const navigate = useNavigate();
+  const { playTrack, pauseTrack, resumeTrack, isPlaying: isGlobalPlaying, currentTrack } = useAudio();
   const [surah, setSurah] = useState<SurahDetail | null>(null);
   const [translation, setTranslation] = useState<any>(null);
-  const [urduAudioData, setUrduAudioData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [playingAyah, setPlayingAyah] = useState<number | null>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(1);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [readingTime, setReadingTime] = useState(0);
   const [karmaAwarded, setKarmaAwarded] = useState(false);
@@ -51,7 +50,6 @@ export default function SurahView() {
   }, []);
 
   useEffect(() => {
-    // Award 50 points after 10 minutes (600 seconds)
     if (readingTime >= 600 && !karmaAwarded) {
       awardKarma(50);
       setKarmaAwarded(true);
@@ -73,18 +71,15 @@ export default function SurahView() {
     const fetchSurah = async () => {
       setLoading(true);
       try {
-        const [arabicRes, transRes, urduAudioRes] = await Promise.all([
+        const [arabicRes, transRes] = await Promise.all([
           fetch(`https://api.alquran.cloud/v1/surah/${number}/quran-uthmani`),
           fetch(`https://api.alquran.cloud/v1/surah/${number}/ur.jalandhry`),
-          fetch(`https://api.alquran.cloud/v1/surah/${number}/ur.khan`) // Reliable Urdu Audio
         ]);
         const arabicData = await arabicRes.json();
         const transData = await transRes.json();
-        const urduAudioData = await urduAudioRes.json();
         
         setSurah(arabicData.data);
         setTranslation(transData.data);
-        setUrduAudioData(urduAudioData.data);
       } catch (err) {
         console.error(err);
       } finally {
@@ -110,254 +105,41 @@ export default function SurahView() {
     }
   }, [surah, playingAyah]);
 
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const playPromiseRef = useRef<Promise<void> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        const oldAudio = audioRef.current;
-        if (playPromiseRef.current) {
-          playPromiseRef.current.then(() => oldAudio.pause()).catch(() => {});
-        } else {
-          oldAudio.pause();
-        }
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
   const playUrduOnly = (ayahIndex: number) => {
     if (!surah || !translation) return;
-    
     const ayah = surah.ayahs[ayahIndex];
-    const transAyah = translation.ayahs[ayahIndex];
-
-    if (audioRef.current) {
-      const oldAudio = audioRef.current;
-      if (playPromiseRef.current) {
-        playPromiseRef.current.then(() => {
-          oldAudio.pause();
-          oldAudio.currentTime = 0;
-        }).catch(() => {});
-      } else {
-        oldAudio.pause();
-        oldAudio.currentTime = 0;
-      }
-      
-      if (playingAyah === ayah.number && isReadingTranslation) {
-        setPlayingAyah(null);
-        setIsReadingTranslation(false);
-        return;
-      }
-    }
-
-    // Use Islamic Network CDN - very reliable
-    // Global ayah number is used for this CDN
     const urduAudioUrl = `https://cdn.islamic.network/quran/audio/128/ur.khan/${ayah.number}.mp3`;
     
-    const urduAudio = new Audio(urduAudioUrl);
-    urduAudio.volume = volume;
-    audioRef.current = urduAudio;
-    setPlayingAyah(ayah.number);
-    setIsReadingTranslation(true);
-    setIsPlaying(true);
-    
-    const handleFallback = () => {
-      console.log("Urdu audio failed, using TTS fallback...");
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(transAyah.text);
-        utterance.lang = 'ur-PK';
-        utterance.volume = volume;
-        utterance.onstart = () => setIsPlaying(true);
-        utterance.onend = () => {
-          setPlayingAyah(null);
-          setIsReadingTranslation(false);
-          setIsPlaying(false);
-        };
-        utterance.onerror = () => {
-          setPlayingAyah(null);
-          setIsReadingTranslation(false);
-          setIsPlaying(false);
-        };
-        window.speechSynthesis.speak(utterance);
-      } else {
-        setPlayingAyah(null);
-        setIsReadingTranslation(false);
-        setIsPlaying(false);
-      }
-    };
-
-    const playPromise = urduAudio.play();
-    playPromiseRef.current = playPromise;
-    playPromise.catch(err => {
-      if (err.name !== 'AbortError') {
-        console.error("Urdu audio play failed:", err);
-        // Try alternative source if primary fails
-        const surahNum = String(surah.number).padStart(3, '0');
-        const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
-        const fallbackUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
-        
-        const fallbackAudio = new Audio(fallbackUrl);
-        fallbackAudio.volume = volume;
-        audioRef.current = fallbackAudio;
-        const fallbackPromise = fallbackAudio.play();
-        playPromiseRef.current = fallbackPromise;
-        fallbackPromise.catch(e => {
-          if (e.name !== 'AbortError') handleFallback();
-        });
-      }
-    });
-
-    urduAudio.onerror = () => {
-      console.error("Urdu audio load failed");
-      // Fallback is already handled by the play().catch() for most cases, 
-      // but we can trigger it here if play() didn't catch it
-    };
-
-    urduAudio.onended = () => {
+    if (currentTrack === urduAudioUrl && isGlobalPlaying) {
+      pauseTrack();
       setPlayingAyah(null);
-      setIsReadingTranslation(false);
-      setIsPlaying(false);
-    };
-
-    urduAudio.onpause = () => setIsPlaying(false);
-    urduAudio.onplay = () => setIsPlaying(true);
+    } else {
+      playTrack(urduAudioUrl, `Surah ${surah.englishName}`, `Ayah ${ayah.numberInSurah} (Urdu)`);
+      setPlayingAyah(ayah.number);
+      setIsReadingTranslation(true);
+    }
   };
 
-  const playSequentialAudio = async (ayahIndex: number) => {
-    if (!surah || !translation) return;
-    
+  const playSequentialAudio = (ayahIndex: number) => {
+    if (!surah) return;
     const ayah = surah.ayahs[ayahIndex];
-    const transAyah = translation.ayahs[ayahIndex];
-
-    if (audioRef.current) {
-      const oldAudio = audioRef.current;
-      if (playPromiseRef.current) {
-        playPromiseRef.current.then(() => {
-          oldAudio.pause();
-          oldAudio.currentTime = 0;
-        }).catch(() => {});
-      } else {
-        oldAudio.pause();
-        oldAudio.currentTime = 0;
-      }
-
-      if (playingAyah === ayah.number && !isReadingTranslation) {
-        setPlayingAyah(null);
-        setIsPlaying(false);
-        return;
-      }
-    }
-
-    // Play Arabic first - using CDN for reliability
     const arabicAudioUrl = `https://cdn.islamic.network/quran/audio/128/ar.alafasy/${ayah.number}.mp3`;
-    const arabicAudio = new Audio(arabicAudioUrl);
-    arabicAudio.volume = volume;
-    audioRef.current = arabicAudio;
-    setPlayingAyah(ayah.number);
-    setIsReadingTranslation(false);
-    setIsPlaying(true);
     
-    const arabicPromise = arabicAudio.play();
-    playPromiseRef.current = arabicPromise;
-    arabicPromise.catch(err => {
-      if (err.name !== 'AbortError') {
-        console.error("Arabic audio play failed:", err);
-        // If Arabic fails, try to skip to Urdu
-        arabicAudio.onended?.(new Event('ended'));
-      }
-    });
-
-    arabicAudio.onpause = () => setIsPlaying(false);
-    arabicAudio.onplay = () => setIsPlaying(true);
-
-    arabicAudio.onended = () => {
-      // After Arabic, play Urdu
-      const urduAudioUrl = `https://cdn.islamic.network/quran/audio/128/ur.khan/${ayah.number}.mp3`;
-      
-      const urduAudio = new Audio(urduAudioUrl);
-      urduAudio.volume = volume;
-      audioRef.current = urduAudio;
-      setIsReadingTranslation(true);
-      setIsPlaying(true);
-      
-      const handleFallback = () => {
-        console.log("Urdu audio failed, using TTS fallback...");
-        if ('speechSynthesis' in window) {
-          window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(transAyah.text);
-          utterance.lang = 'ur-PK';
-          utterance.volume = volume;
-          utterance.onstart = () => setIsPlaying(true);
-          utterance.onend = () => {
-            setPlayingAyah(null);
-            setIsReadingTranslation(false);
-            setIsPlaying(false);
-          };
-          window.speechSynthesis.speak(utterance);
-        } else {
-          setPlayingAyah(null);
-          setIsReadingTranslation(false);
-          setIsPlaying(false);
-        }
-      };
-
-      const urduPromise = urduAudio.play();
-      playPromiseRef.current = urduPromise;
-      urduPromise.catch(err => {
-        if (err.name !== 'AbortError') {
-          console.error("Urdu audio play failed:", err);
-          const surahNum = String(surah.number).padStart(3, '0');
-          const ayahNum = String(ayah.numberInSurah).padStart(3, '0');
-          const fallbackUrl = `https://everyayah.com/data/Urdu_Jalandhry_128kbps/${surahNum}${ayahNum}.mp3`;
-          
-          const fallbackAudio = new Audio(fallbackUrl);
-          fallbackAudio.volume = volume;
-          audioRef.current = fallbackAudio;
-          const fallbackPromise = fallbackAudio.play();
-          playPromiseRef.current = fallbackPromise;
-          fallbackPromise.catch(e => {
-            if (e.name !== 'AbortError') handleFallback();
-          });
-        }
-      });
-
-      urduAudio.onended = () => {
-        setPlayingAyah(null);
-        setIsReadingTranslation(false);
-        setIsPlaying(false);
-      };
-
-      urduAudio.onpause = () => setIsPlaying(false);
-      urduAudio.onplay = () => setIsPlaying(true);
-    };
+    if (currentTrack === arabicAudioUrl && isGlobalPlaying) {
+      pauseTrack();
+      setPlayingAyah(null);
+    } else {
+      playTrack(arabicAudioUrl, `Surah ${surah.englishName}`, `Ayah ${ayah.numberInSurah} (Arabic)`);
+      setPlayingAyah(ayah.number);
+      setIsReadingTranslation(false);
+    }
   };
 
   const togglePlayback = () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      const oldAudio = audioRef.current;
-      if (playPromiseRef.current) {
-        playPromiseRef.current.then(() => oldAudio.pause()).catch(() => {});
-      } else {
-        oldAudio.pause();
-      }
+    if (isGlobalPlaying) {
+      pauseTrack();
     } else {
-      const playPromise = audioRef.current.play();
-      playPromiseRef.current = playPromise;
-      playPromise.catch(err => {
-        if (err.name !== 'AbortError') console.error("Playback failed:", err);
-      });
-    }
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
+      resumeTrack();
     }
   };
 
@@ -556,7 +338,7 @@ export default function SurahView() {
               onClick={togglePlayback}
               className="w-12 h-12 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-lg shadow-emerald-200 shrink-0"
             >
-              {isPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
+              {isGlobalPlaying ? <Pause size={20} /> : <Play size={20} className="ml-1" />}
             </motion.button>
             
             <div className="flex-1 min-w-0">
@@ -566,19 +348,6 @@ export default function SurahView() {
               <p className="text-xs font-black text-slate-800 truncate">
                 Ayah {surah.ayahs.find(a => a.number === playingAyah)?.numberInSurah} of {surah.englishName}
               </p>
-            </div>
-
-            <div className="flex items-center gap-2 group relative">
-              <Volume2 size={18} className="text-slate-400" />
-              <input 
-                type="range" 
-                min="0" 
-                max="1" 
-                step="0.01" 
-                value={volume}
-                onChange={handleVolumeChange}
-                className="w-16 h-1 bg-slate-200 rounded-full appearance-none cursor-pointer accent-emerald-600"
-              />
             </div>
           </motion.div>
         )}

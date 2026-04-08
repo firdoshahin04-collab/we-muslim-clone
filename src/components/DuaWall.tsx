@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Heart, Send, User, Shield, MessageSquare, LogIn } from 'lucide-react';
-import { db, auth } from '../lib/firebase';
-import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp } from 'firebase/firestore';
+import { Heart, Send, User, Shield, MessageSquare, LogIn, Share2, CornerDownRight } from 'lucide-react';
+import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
+import { collection, addDoc, query, orderBy, onSnapshot, updateDoc, doc, increment, serverTimestamp, getDocs } from 'firebase/firestore';
 import { signInWithPopup, GoogleAuthProvider } from 'firebase/auth';
 import { cn } from '../lib/utils';
 import { awardKarma } from '../lib/karma';
@@ -11,7 +11,7 @@ const PROFANITY_LIST = [
   'badword1', 'badword2', 'abuse', 'hate', 'kill', 'death', 'insult', 'curse',
   'stupid', 'idiot', 'fool', 'dumb', 'ugly', 'fat', 'loser', 'suck', 'hell',
   'damn', 'crap', 'piss', 'shit', 'fuck', 'bitch', 'asshole', 'bastard'
-]; // Expanded list for basic filtering
+];
 
 export default function DuaWall() {
   const [duas, setDuas] = useState<any[]>([]);
@@ -21,6 +21,10 @@ export default function DuaWall() {
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [user, setUser] = useState(auth.currentUser);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState('');
+  const [replies, setReplies] = useState<Record<string, any[]>>({});
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((u) => setUser(u));
@@ -50,18 +54,40 @@ export default function DuaWall() {
 
   useEffect(() => {
     const q = query(collection(db, 'duas'), orderBy('createdAt', 'desc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const unsubscribes: (() => void)[] = [];
+
+    const unsubscribeDuas = onSnapshot(q, (snapshot) => {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setDuas(docs);
+      
+      // Fetch replies for each dua
+      docs.forEach(dua => {
+        if (!unsubscribes.some(u => (u as any).id === dua.id)) {
+          const repliesQuery = query(collection(db, `duas/${dua.id}/replies`), orderBy('createdAt', 'asc'));
+          const unsubReply = onSnapshot(repliesQuery, (replySnapshot) => {
+            const replyDocs = replySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+            setReplies(prev => ({ ...prev, [dua.id]: replyDocs }));
+          }, (error) => {
+            console.error(`Error fetching replies for ${dua.id}:`, error);
+          });
+          (unsubReply as any).id = dua.id;
+          unsubscribes.push(unsubReply);
+        }
+      });
+    }, (error) => {
+      handleFirestoreError(error, OperationType.GET, 'duas');
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribeDuas();
+      unsubscribes.forEach(unsub => unsub());
+    };
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newDua.trim() || !auth.currentUser) return;
 
-    // Basic Profanity Filter
     const hasProfanity = PROFANITY_LIST.some(word => newDua.toLowerCase().includes(word));
     if (hasProfanity) {
       alert("Please keep your prayers respectful.");
@@ -79,18 +105,86 @@ export default function DuaWall() {
         createdAt: serverTimestamp(),
       });
       setNewDua('');
-      await awardKarma(20); // Award points for helping/sharing
+      await awardKarma(20);
     } catch (error) {
-      console.error("Error adding dua:", error);
+      handleFirestoreError(error, OperationType.CREATE, 'duas');
     }
     setLoading(false);
   };
 
+  const handleReply = async (duaId: string) => {
+    if (!replyText.trim() || !auth.currentUser) return;
+
+    const hasProfanity = PROFANITY_LIST.some(word => replyText.toLowerCase().includes(word));
+    if (hasProfanity) {
+      alert("Please keep your replies respectful.");
+      return;
+    }
+
+    try {
+      await addDoc(collection(db, `duas/${duaId}/replies`), {
+        content: replyText,
+        authorUid: auth.currentUser.uid,
+        authorName: auth.currentUser.displayName || 'User',
+        createdAt: serverTimestamp(),
+      });
+      setReplyText('');
+      setReplyingTo(null);
+      await awardKarma(10);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.CREATE, `duas/${duaId}/replies`);
+    }
+  };
+
   const handleAmeen = async (duaId: string) => {
+    if (!auth.currentUser) {
+      alert("Please login to say Ameen.");
+      return;
+    }
+
+    const dua = duas.find(d => d.id === duaId);
+    if (dua?.likedBy?.includes(auth.currentUser.uid)) {
+      alert("You have already said Ameen for this prayer.");
+      return;
+    }
+
     const duaRef = doc(db, 'duas', duaId);
-    await updateDoc(duaRef, {
-      ameenCount: increment(1)
-    });
+    try {
+      await updateDoc(duaRef, {
+        ameenCount: increment(1),
+        likedBy: [...(dua?.likedBy || []), auth.currentUser.uid]
+      });
+      await awardKarma(5);
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `duas/${duaId}`);
+    }
+  };
+
+  const handleShare = async (dua: any) => {
+    if (isSharing) return;
+    setIsSharing(true);
+    
+    const shareText = `"${dua.content}" - A prayer from ${dua.authorName} on Quran App. Join us in saying Ameen!`;
+    
+    try {
+      if (navigator.share) {
+        await navigator.share({
+          title: 'Share Dua',
+          text: shareText,
+          url: window.location.href,
+        });
+      } else {
+        // Fallback: Copy to clipboard
+        await navigator.clipboard.writeText(shareText);
+        alert("Prayer copied to clipboard!");
+      }
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error sharing:', error);
+      }
+    } finally {
+      setIsSharing(false);
+    }
   };
 
   return (
@@ -192,11 +286,74 @@ export default function DuaWall() {
                   </motion.div>
                   <span className="font-bold">{dua.ameenCount} Ameen</span>
                 </button>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <MessageSquare size={16} />
-                  <span className="text-sm">Reply</span>
-                </div>
+                <button 
+                  onClick={() => setReplyingTo(replyingTo === dua.id ? null : dua.id)}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2 rounded-full transition-all",
+                    replyingTo === dua.id ? "bg-emerald-100 text-emerald-700" : "bg-slate-50 text-slate-500 hover:bg-slate-100"
+                  )}
+                >
+                  <MessageSquare size={18} />
+                  <span className="text-sm font-bold">{replies[dua.id]?.length || 0} Replies</span>
+                </button>
+                <button 
+                  onClick={() => handleShare(dua)}
+                  className="flex items-center gap-2 px-4 py-2 bg-slate-50 text-slate-500 rounded-full hover:bg-slate-100 transition-all"
+                >
+                  <Share2 size={18} />
+                </button>
               </div>
+
+              {/* Replies Section */}
+              <AnimatePresence>
+                {replyingTo === dua.id && (
+                  <motion.div
+                    initial={{ height: 0, opacity: 0 }}
+                    animate={{ height: 'auto', opacity: 1 }}
+                    exit={{ height: 0, opacity: 0 }}
+                    className="overflow-hidden space-y-4 pt-4 border-t border-slate-50"
+                  >
+                    <div className="space-y-3">
+                      {replies[dua.id]?.map((reply) => (
+                        <div key={reply.id} className="flex gap-3 items-start pl-4">
+                          <CornerDownRight size={16} className="text-slate-300 mt-1 shrink-0" />
+                          <div className="bg-slate-50 rounded-2xl p-3 flex-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">{reply.authorName}</span>
+                              <span className="text-[8px] text-slate-400">
+                                {reply.createdAt?.toDate ? new Date(reply.createdAt.toDate()).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Just now'}
+                              </span>
+                            </div>
+                            <p className="text-sm text-slate-700">{reply.content}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {user ? (
+                      <div className="flex gap-2 pl-4">
+                        <input 
+                          type="text"
+                          value={replyText}
+                          onChange={(e) => setReplyText(e.target.value)}
+                          placeholder="Write a supportive reply..."
+                          className="flex-1 bg-slate-50 rounded-xl px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20"
+                          onKeyDown={(e) => e.key === 'Enter' && handleReply(dua.id)}
+                        />
+                        <button 
+                          onClick={() => handleReply(dua.id)}
+                          disabled={!replyText.trim()}
+                          className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center disabled:opacity-50"
+                        >
+                          <Send size={16} />
+                        </button>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-center text-slate-400 py-2">Sign in to reply to this prayer.</p>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </motion.div>
           ))}
         </AnimatePresence>

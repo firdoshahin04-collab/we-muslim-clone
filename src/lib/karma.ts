@@ -1,4 +1,4 @@
-import { db, auth } from './firebase';
+import { db, auth, handleFirestoreError, OperationType } from './firebase';
 import { doc, updateDoc, increment, getDoc, setDoc } from 'firebase/firestore';
 
 export async function awardKarma(points: number) {
@@ -27,6 +27,6 @@ export async function awardKarma(points: number) {
       });
     }
   } catch (error) {
-    console.error("Error awarding karma:", error);
+    handleFirestoreError(error, OperationType.WRITE, `users/${auth.currentUser.uid}`);
   }
 }

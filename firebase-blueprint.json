@@ -37,6 +37,20 @@
     "/duas/{duaId}": {
       "schema": "dua",
       "description": "Global Dua Wall posts"
+    },
+    "/duas/{duaId}/replies/{replyId}": {
+      "schema": {
+        "title": "Reply",
+        "type": "object",
+        "properties": {
+          "content": { "type": "string" },
+          "authorUid": { "type": "string" },
+          "authorName": { "type": "string" },
+          "createdAt": { "type": "string", "format": "date-time" }
+        },
+        "required": ["content", "authorUid", "createdAt"]
+      },
+      "description": "Replies to Dua Wall posts"
     }
   }
 }
