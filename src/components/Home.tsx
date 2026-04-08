@@ -1,14 +1,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { format, subDays, startOfDay } from 'date-fns';
 import { usePrayer } from './PrayerProvider';
-import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play, MessageSquare, Radio, Activity, Target, ShieldCheck, Trophy, Zap, LogIn, LogOut, BarChart2, Calculator } from 'lucide-react';
+import { Clock, MapPin, ChevronRight, Settings as SettingsIcon, Fingerprint, Heart, BookOpen, Quote, Check, Share2, Star, Sun, Moon, Sparkles, Book, Search, VolumeX, Play, MessageSquare, Radio, Activity, Target, ShieldCheck, Trophy, Zap, LogIn, LogOut, BarChart2, Calculator, Compass, RotateCw, Mic, PenTool, Baby } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { RubElHizb, CrescentStar, IslamicPattern } from './DecorativeIcons';
 import { db, auth, handleFirestoreError, OperationType } from '../lib/firebase';
 import { signInWithPopup, GoogleAuthProvider, signOut } from 'firebase/auth';
-import { doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
 import { awardKarma } from '../lib/karma';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -173,8 +173,30 @@ export default function Home() {
   };
 
   const handleMosqueCheckIn = async () => {
-    await awardKarma(100);
-    alert("MashaAllah! You've earned 100 points for checking in at the mosque.");
+    if (!auth.currentUser) return;
+    const today = format(new Date(), 'yyyy-MM-dd');
+    const checkinRef = doc(db, 'users', auth.currentUser.uid, 'checkins', today);
+    
+    try {
+      const checkinDoc = await getDoc(checkinRef);
+      const count = checkinDoc.exists() ? checkinDoc.data().count : 0;
+      
+      if (count >= 5) {
+        alert("MashaAllah! You've already checked in 5 times today. That's the daily limit.");
+        return;
+      }
+      
+      await setDoc(checkinRef, {
+        count: count + 1,
+        lastCheckin: new Date().toISOString()
+      }, { merge: true });
+      
+      await awardKarma(100);
+      alert(`MashaAllah! Check-in successful (${count + 1}/5). You've earned 100 points!`);
+    } catch (e) {
+      console.error(e);
+      handleFirestoreError(e, OperationType.WRITE, `users/${auth.currentUser.uid}/checkins/${today}`);
+    }
   };
 
   return (
@@ -316,6 +338,14 @@ export default function Home() {
           { id: 'azkar', title: 'Azkar', icon: Moon, color: 'bg-indigo-50', iconColor: 'text-indigo-600', path: '/azkar', description: 'Remembrance' },
           { id: 'nearby', title: 'Nearby', icon: MapPin, color: 'bg-blue-50', iconColor: 'text-blue-600', path: '/nearby', description: 'Find Masjids' },
           { id: 'zakat', title: 'Zakat', icon: Calculator, color: 'bg-emerald-50', iconColor: 'text-emerald-600', path: '/zakat', description: 'Calculator' },
+          { id: 'qibla', title: 'Qibla AR', icon: Compass, color: 'bg-slate-900', iconColor: 'text-white', path: '/qibla', description: '3D Finder' },
+          { id: 'tawaf', title: 'Tawaf', icon: RotateCw, color: 'bg-blue-50', iconColor: 'text-blue-600', path: '/tawaf', description: 'Umrah Tracker' },
+          { id: 'tajweed', title: 'Tajweed', icon: Mic, color: 'bg-emerald-50', iconColor: 'text-emerald-600', path: '/tajweed', description: 'AI Tutor' },
+          { id: 'calligraphy', title: 'Calligraphy', icon: PenTool, color: 'bg-amber-50', iconColor: 'text-amber-600', path: '/calligraphy', description: 'ML Validator' },
+          { id: 'kids', title: 'Kids Zone', icon: Baby, color: 'bg-rose-50', iconColor: 'text-rose-600', path: '/kids', description: 'Learn Alif Ba' },
+          { id: 'status', title: 'Status', icon: Quote, color: 'bg-indigo-50', iconColor: 'text-indigo-600', path: '/status', description: '1000+ Quotes' },
+          { id: 'leaderboard', title: 'Explore', icon: Trophy, color: 'bg-amber-50', iconColor: 'text-amber-600', path: '/leaderboard', description: 'Top Users' },
+          { id: 'challenges', title: 'Challenges', icon: Target, color: 'bg-slate-900', iconColor: 'text-white', path: '/challenges', description: 'Level Up' },
           { id: 'hadith', title: 'Hadith', icon: Quote, color: 'bg-amber-50', iconColor: 'text-amber-600', path: '/hadith', description: 'Hadith Library' },
           { id: 'tasbih', title: 'Tasbih', icon: Fingerprint, color: 'bg-slate-50', iconColor: 'text-slate-600', path: '/tasbih', description: 'Digital Counter' },
         ].map((feature) => (
@@ -344,6 +374,14 @@ export default function Home() {
               feature.id === 'live' ? 'group-hover:bg-blue-500' :
               feature.id === 'wellness' ? 'group-hover:bg-emerald-500' :
               feature.id === 'zakat' ? 'group-hover:bg-emerald-500' :
+              feature.id === 'qibla' ? 'group-hover:bg-slate-800' :
+              feature.id === 'tawaf' ? 'group-hover:bg-blue-500' :
+              feature.id === 'tajweed' ? 'group-hover:bg-emerald-500' :
+              feature.id === 'calligraphy' ? 'group-hover:bg-amber-500' :
+              feature.id === 'kids' ? 'group-hover:bg-rose-500' :
+              feature.id === 'status' ? 'group-hover:bg-indigo-500' :
+              feature.id === 'leaderboard' ? 'group-hover:bg-amber-500' :
+              feature.id === 'challenges' ? 'group-hover:bg-slate-800' :
               feature.id === 'khatam' ? 'group-hover:bg-amber-500' :
               feature.id === 'scanner' ? 'group-hover:bg-slate-500' : 'group-hover:bg-slate-500'
             )}>
@@ -409,7 +447,7 @@ export default function Home() {
             <div className="flex items-center gap-3">
               <div className="px-4 py-2 bg-white/20 backdrop-blur-md rounded-xl border border-white/10 flex items-center gap-2">
                 <Zap size={14} className="text-amber-300" />
-                <span className="text-xs font-black uppercase tracking-widest">{userKarma?.level || 'Novice'}</span>
+                <span className="text-xs font-black uppercase tracking-widest">Level {userKarma?.level || 1}</span>
               </div>
               <button 
                 onClick={handleMosqueCheckIn}

@@ -2,16 +2,43 @@
   "entities": {
     "user": {
       "title": "User",
-      "description": "User profile with karma points",
+      "description": "User profile with karma points and progress",
       "type": "object",
       "properties": {
         "uid": { "type": "string" },
         "displayName": { "type": "string" },
         "email": { "type": "string" },
+        "photoURL": { "type": "string" },
         "karmaPoints": { "type": "number" },
-        "level": { "type": "string", "enum": ["Novice", "Explorer", "Muhsin"] }
+        "level": { "type": "number" },
+        "badges": { "type": "array", "items": { "type": "string" } },
+        "prayerHistory": { "type": "object" }
       },
-      "required": ["uid", "karmaPoints"]
+      "required": ["uid", "karmaPoints", "level"]
+    },
+    "challenge": {
+      "title": "Challenge",
+      "description": "Daily or weekly spiritual challenges",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "points": { "type": "number" },
+        "type": { "type": "string", "enum": ["daily", "weekly", "special"] }
+      },
+      "required": ["title", "points", "type"]
+    },
+    "quote": {
+      "title": "Quote",
+      "description": "Islamic quotes for status",
+      "type": "object",
+      "properties": {
+        "text": { "type": "string" },
+        "author": { "type": "string" },
+        "category": { "type": "string" }
+      },
+      "required": ["text"]
     },
     "dua": {
       "title": "Dua",
@@ -33,6 +60,26 @@
     "/users/{uid}": {
       "schema": "user",
       "description": "User profiles"
+    },
+    "/users/{uid}/checkins/{date}": {
+      "schema": {
+        "title": "Checkin",
+        "type": "object",
+        "properties": {
+          "count": { "type": "number" },
+          "lastCheckin": { "type": "string", "format": "date-time" }
+        },
+        "required": ["count"]
+      },
+      "description": "Daily mosque checkin tracking"
+    },
+    "/challenges/{challengeId}": {
+      "schema": "challenge",
+      "description": "Available challenges"
+    },
+    "/quotes/{quoteId}": {
+      "schema": "quote",
+      "description": "Islamic quotes"
     },
     "/duas/{duaId}": {
       "schema": "dua",

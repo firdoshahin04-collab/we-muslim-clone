@@ -12,18 +12,19 @@ export async function awardKarma(points: number) {
       await setDoc(userRef, {
         uid: auth.currentUser.uid,
         displayName: auth.currentUser.displayName || 'User',
+        email: auth.currentUser.email,
+        photoURL: auth.currentUser.photoURL,
         karmaPoints: points,
-        level: 'Novice'
+        level: 1
       });
     } else {
-      const currentPoints = userDoc.data().karmaPoints + points;
-      let level = 'Novice';
-      if (currentPoints >= 1000) level = 'Muhsin';
-      else if (currentPoints >= 500) level = 'Explorer';
+      const currentPoints = (userDoc.data().karmaPoints || 0) + points;
+      const level = Math.floor(currentPoints / 1000) + 1;
 
       await updateDoc(userRef, {
         karmaPoints: increment(points),
-        level: level
+        level: level,
+        photoURL: auth.currentUser.photoURL // Sync photo
       });
     }
   } catch (error) {

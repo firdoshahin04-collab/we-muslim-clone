@@ -5,7 +5,14 @@ import Home from './components/Home';
 import Quran from './components/Quran';
 import SurahView from './components/SurahView';
 import ParaMeanings from './components/ParaMeanings';
-import Qibla from './components/Qibla';
+import QiblaAR from './components/QiblaAR';
+import TawafTracker from './components/TawafTracker';
+import TajweedTutor from './components/TajweedTutor';
+import CalligraphyValidator from './components/CalligraphyValidator';
+import KidsSection from './components/KidsSection';
+import StatusSection from './components/StatusSection';
+import Leaderboard from './components/Leaderboard';
+import Challenges from './components/Challenges';
 import Nearby from './components/Nearby';
 import Tasbih from './components/Tasbih';
 import Settings from './components/Settings';
@@ -22,6 +29,7 @@ import HalalScanner from './components/HalalScanner';
 import ZakatCalculator from './components/ZakatCalculator';
 import { PrayerProvider } from './components/PrayerProvider';
 import { AudioProvider } from './components/AudioProvider';
+import { ThemeProvider } from './components/ThemeProvider';
 
 function AnimatedRoutes() {
   const location = useLocation();
@@ -33,7 +41,14 @@ function AnimatedRoutes() {
         <Route path="/quran" element={<PageWrapper><Quran /></PageWrapper>} />
         <Route path="/surah/:number" element={<PageWrapper><SurahView /></PageWrapper>} />
         <Route path="/para" element={<PageWrapper><ParaMeanings /></PageWrapper>} />
-        <Route path="/qibla" element={<PageWrapper><Qibla /></PageWrapper>} />
+        <Route path="/qibla" element={<PageWrapper><QiblaAR /></PageWrapper>} />
+        <Route path="/tawaf" element={<PageWrapper><TawafTracker /></PageWrapper>} />
+        <Route path="/tajweed" element={<PageWrapper><TajweedTutor /></PageWrapper>} />
+        <Route path="/calligraphy" element={<PageWrapper><CalligraphyValidator /></PageWrapper>} />
+        <Route path="/kids" element={<PageWrapper><KidsSection /></PageWrapper>} />
+        <Route path="/status" element={<PageWrapper><StatusSection /></PageWrapper>} />
+        <Route path="/leaderboard" element={<PageWrapper><Leaderboard /></PageWrapper>} />
+        <Route path="/challenges" element={<PageWrapper><Challenges /></PageWrapper>} />
         <Route path="/tasbih" element={<PageWrapper><Tasbih /></PageWrapper>} />
         <Route path="/nearby" element={<PageWrapper><Nearby /></PageWrapper>} />
         <Route path="/duas" element={<PageWrapper><Duas /></PageWrapper>} />
@@ -74,14 +89,16 @@ function PageWrapper({ children }: { children: React.ReactNode }) {
 
 export default function App() {
   return (
-    <PrayerProvider>
-      <AudioProvider>
-        <BrowserRouter>
-          <Layout>
-            <AnimatedRoutes />
-          </Layout>
-        </BrowserRouter>
-      </AudioProvider>
-    </PrayerProvider>
+    <ThemeProvider>
+      <PrayerProvider>
+        <AudioProvider>
+          <BrowserRouter>
+            <Layout>
+              <AnimatedRoutes />
+            </Layout>
+          </BrowserRouter>
+        </AudioProvider>
+      </PrayerProvider>
+    </ThemeProvider>
   );
 }

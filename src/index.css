@@ -40,6 +40,16 @@
     0%, 100% { opacity: 0.5; filter: blur(20px); }
     50% { opacity: 0.8; filter: blur(30px); }
   }
+
+  --theme-primary: var(--color-emerald-500);
+  --theme-secondary: var(--color-gold-400);
+  --theme-accent: var(--color-gold-600);
+  --theme-background: #f8f9fb;
+  --theme-surface: #ffffff;
+  --theme-text: #1e293b;
+  --theme-text-muted: #64748b;
+  --theme-border: #f1f5f9;
+  --theme-pattern-opacity: 0.05;
 }
 
 .animate-float {
@@ -57,7 +67,9 @@
 }
 
 body {
-  @apply bg-[#f8f9fb] text-slate-900 antialiased;
+  background-color: var(--theme-background);
+  color: var(--theme-text);
+  @apply antialiased;
 }
 
 .font-arabic {
@@ -68,6 +80,7 @@ body {
 .bg-islamic-pattern {
   background-color: currentColor;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M0 0h80v80H0z'/%3E%3Cpath d='M40 0l40 40-40 40L0 40 40 0zm0 10L10 40l30 30 30-30-30-30zm0 10l20 20-20 20-20-20 20-20z'/%3E%3C/g%3E%3C/svg%3E");
+  opacity: var(--theme-pattern-opacity);
 }
 
 .bg-islamic-pattern-dark {
@@ -75,7 +88,10 @@ body {
 }
 
 .glass {
-  @apply bg-white/70 backdrop-blur-xl border border-white/20 shadow-xl shadow-slate-200/50;
+  background-color: var(--theme-surface);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--theme-border);
+  @apply shadow-xl shadow-slate-200/50;
 }
 
 .glass-dark {
